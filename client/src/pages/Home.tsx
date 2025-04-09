@@ -1,5 +1,6 @@
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import PromoBanner from "@/components/layout/PromoBanner";
 import HeroSection from "@/components/home/HeroSection";
 import StatsSection from "@/components/home/StatsSection";
 import WhyChooseUs from "@/components/home/WhyChooseUs";
@@ -60,6 +61,7 @@ export default function Home() {
   
   return (
     <>
+      <PromoBanner />
       <Navbar />
       
       <main>
