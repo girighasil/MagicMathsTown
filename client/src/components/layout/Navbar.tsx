@@ -32,8 +32,8 @@ export default function Navbar() {
   };
   
   // Default values if config isn't loaded yet
-  const siteTitle = config.siteTitle || 'Maths Magic Town';
-  const navLinks: NavLink[] = config.navLinks || [
+  const siteTitle = config?.siteTitle || 'Maths Magic Town';
+  const navLinks: NavLink[] = config?.navLinks || [
     { title: 'Home', path: '#home' },
     { title: 'Courses', path: '#courses' },
     { title: 'Doubt Classes', path: '#doubt-classes' },
