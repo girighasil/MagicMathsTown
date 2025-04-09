@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Plus, Trash } from 'lucide-react';
-import { EXAM_CATEGORIES } from '@/lib/constants';
+
 
 export default function SiteConfigManagement() {
   const { config, isLoading } = useSiteConfig();
@@ -66,9 +66,6 @@ export default function SiteConfigManagement() {
   const [fontMain, setFontMain] = useState('');
   const [fontHeadings, setFontHeadings] = useState('');
   const [logoUrl, setLogoUrl] = useState('');
-  
-  // Course categories
-  const [examCategories, setExamCategories] = useState<string[]>([]);
   
   useEffect(() => {
     if (config) {
@@ -139,8 +136,7 @@ export default function SiteConfigManagement() {
       setFontHeadings(theme.fontHeadings || 'Poppins, system-ui, sans-serif');
       setLogoUrl(theme.logoUrl || '');
       
-      // Initialize exam categories
-      setExamCategories(config.examCategories || EXAM_CATEGORIES);
+
     }
   }, [config]);
   
@@ -173,20 +169,7 @@ export default function SiteConfigManagement() {
     setFooterLinks(footerLinks.filter((_, i) => i !== index));
   };
   
-  // Exam category operations
-  const addExamCategory = () => {
-    setExamCategories([...examCategories, '']);
-  };
-  
-  const updateExamCategory = (index: number, value: string) => {
-    const updatedCategories = [...examCategories];
-    updatedCategories[index] = value;
-    setExamCategories(updatedCategories);
-  };
-  
-  const removeExamCategory = (index: number) => {
-    setExamCategories(examCategories.filter((_, i) => i !== index));
-  };
+
   
   const saveGeneralSettings = async () => {
     setSaving(true);
@@ -438,30 +421,7 @@ export default function SiteConfigManagement() {
     }
   };
   
-  const saveExamCategories = async () => {
-    setSaving(true);
-    try {
-      await apiRequest('PUT', `/api/admin/site-config/examCategories`, {
-        value: examCategories
-      });
-      
-      toast({
-        title: 'Exam categories saved',
-        description: 'Exam categories have been updated successfully.',
-      });
-      
-      // Invalidate queries to refresh data
-      queryClient.invalidateQueries({ queryKey: ['/api/site-config'] });
-    } catch (error) {
-      toast({
-        title: 'Error saving exam categories',
-        description: 'An error occurred while saving exam categories.',
-        variant: 'destructive',
-      });
-    } finally {
-      setSaving(false);
-    }
-  };
+
   
   return (
     <AdminLayout title="Site Configuration">
@@ -475,7 +435,6 @@ export default function SiteConfigManagement() {
           <TabsTrigger value="social">Social Media</TabsTrigger>
           <TabsTrigger value="seo">SEO Settings</TabsTrigger>
           <TabsTrigger value="theme">Theme Settings</TabsTrigger>
-          <TabsTrigger value="exams">Exam Categories</TabsTrigger>
         </TabsList>
         
         <TabsContent value="general">
@@ -1095,45 +1054,6 @@ export default function SiteConfigManagement() {
               <Button onClick={saveThemeSettings} disabled={saving}>
                 {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Save Theme Settings
-              </Button>
-            </CardFooter>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="exams">
-          <Card>
-            <CardHeader>
-              <CardTitle>Exam Categories</CardTitle>
-              <CardDescription>Customize the exam categories displayed on the courses page</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {examCategories.map((category, index) => (
-                <div key={index} className="flex items-center space-x-2">
-                  <Input
-                    value={category}
-                    onChange={(e) => updateExamCategory(index, e.target.value)}
-                    placeholder="Category Name"
-                    className="flex-1"
-                  />
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => removeExamCategory(index)}
-                  >
-                    <Trash className="h-4 w-4" />
-                  </Button>
-                </div>
-              ))}
-              
-              <Button variant="outline" size="sm" className="mt-2" onClick={addExamCategory}>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Exam Category
-              </Button>
-            </CardContent>
-            <CardFooter>
-              <Button onClick={saveExamCategories} disabled={saving}>
-                {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Save Exam Categories
               </Button>
             </CardFooter>
           </Card>
