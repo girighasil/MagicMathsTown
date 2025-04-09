@@ -13,6 +13,7 @@ import {
   LogOut,
   Menu,
   X,
+  Settings,
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
@@ -30,6 +31,7 @@ export function AdminLayout({ children, title }: AdminLayoutProps) {
 
   const navigation = [
     { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
+    { name: "Site Configuration", href: "/admin/site-config", icon: Settings },
     { name: "Courses", href: "/admin/courses", icon: BookOpen },
     { name: "Test Series", href: "/admin/test-series", icon: FileText },
     { name: "Testimonials", href: "/admin/testimonials", icon: MessageCircle },

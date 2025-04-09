@@ -23,6 +23,7 @@ const CourseManagement = lazy(() => import("@/pages/admin/courses"));
 const TestimonialsManagement = lazy(() => import("@/pages/admin/testimonials"));
 const FaqManagement = lazy(() => import("@/pages/admin/faqs"));
 const PromoManagement = lazy(() => import("@/pages/admin/promotions"));
+const SiteConfigManagement = lazy(() => import("@/pages/admin/site-config"));
 
 function Router() {
   return (
@@ -51,6 +52,10 @@ function Router() {
         
         <ProtectedRoute path="/admin/promotions" adminOnly>
           <PromoManagement />
+        </ProtectedRoute>
+        
+        <ProtectedRoute path="/admin/site-config" adminOnly>
+          <SiteConfigManagement />
         </ProtectedRoute>
         
         <Route component={NotFound} />
