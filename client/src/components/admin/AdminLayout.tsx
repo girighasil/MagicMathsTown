@@ -36,6 +36,7 @@ export function AdminLayout({ children, title }: AdminLayoutProps) {
     { name: "Doubt Sessions", href: "/admin/doubt-sessions", icon: HelpCircle },
     { name: "Contact Messages", href: "/admin/contacts", icon: MessageSquare },
     { name: "FAQs", href: "/admin/faqs", icon: HelpCircle },
+    { name: "Promotions", href: "/admin/promotions", icon: MessageSquare },
     { name: "Users", href: "/admin/users", icon: Users },
   ];
 

@@ -18,6 +18,12 @@ function LoadingFallback() {
   );
 }
 
+// Lazy load admin components for better performance
+const CourseManagement = lazy(() => import("@/pages/admin/courses"));
+const TestimonialsManagement = lazy(() => import("@/pages/admin/testimonials"));
+const FaqManagement = lazy(() => import("@/pages/admin/faqs"));
+const PromoManagement = lazy(() => import("@/pages/admin/promotions"));
+
 function Router() {
   return (
     <Suspense fallback={<LoadingFallback />}>
@@ -25,9 +31,28 @@ function Router() {
         <Route path="/" component={Home} />
         <Route path="/auth" component={AuthPage} />
         <Route path="/login" component={LoginPage} />
+        
+        {/* Admin routes */}
         <ProtectedRoute path="/admin" adminOnly>
           <AdminDashboard />
         </ProtectedRoute>
+        
+        <ProtectedRoute path="/admin/courses" adminOnly>
+          <CourseManagement />
+        </ProtectedRoute>
+        
+        <ProtectedRoute path="/admin/testimonials" adminOnly>
+          <TestimonialsManagement />
+        </ProtectedRoute>
+        
+        <ProtectedRoute path="/admin/faqs" adminOnly>
+          <FaqManagement />
+        </ProtectedRoute>
+        
+        <ProtectedRoute path="/admin/promotions" adminOnly>
+          <PromoManagement />
+        </ProtectedRoute>
+        
         <Route component={NotFound} />
       </Switch>
     </Suspense>
