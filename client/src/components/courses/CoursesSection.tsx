@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
@@ -8,14 +8,37 @@ import { useExamCategories } from "@/hooks/use-site-config";
 
 export default function CoursesSection() {
   const { examCategories } = useExamCategories();
-  const defaultCategory = examCategories[0] || "All Exams";
+  const defaultCategory = "All Exams";
+  const allCategories = [defaultCategory, ...examCategories.filter((c: string) => c !== defaultCategory)];
   
   const [activeCategory, setActiveCategory] = useState<string>(defaultCategory);
   
-  const { data: courses, error, isLoading } = useQuery<Course[]>({
-    queryKey: ['/api/courses', activeCategory],
+  const { data: allCourses, error: allCoursesError, isLoading: allCoursesLoading } = useQuery<Course[]>({
+    queryKey: ['/api/courses'],
     staleTime: 60000
   });
+  
+  const [filteredCourses, setFilteredCourses] = useState<Course[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  
+  useEffect(() => {
+    if (allCourses) {
+      setIsLoading(false);
+      
+      if (activeCategory === defaultCategory) {
+        // Show all courses for "All Exams"
+        setFilteredCourses(allCourses);
+      } else {
+        // Filter courses by the selected category
+        const filtered = allCourses.filter(course => 
+          Array.isArray(course.categories) 
+            ? course.categories.includes(activeCategory)
+            : course.category === activeCategory
+        );
+        setFilteredCourses(filtered);
+      }
+    }
+  }, [allCourses, activeCategory, defaultCategory]);
 
   const handleCategoryClick = (category: string) => {
     setActiveCategory(category);
@@ -39,7 +62,7 @@ export default function CoursesSection() {
         {/* Mobile filter buttons (scrollable) */}
         <div className="flex overflow-x-auto pb-2 md:hidden">
           <div className="flex space-x-2">
-            {examCategories.map((category: string, index: number) => (
+            {allCategories.map((category: string, index: number) => (
               <button
                 key={index}
                 className={`whitespace-nowrap px-4 py-2 rounded font-medium ${
@@ -57,7 +80,7 @@ export default function CoursesSection() {
         
         {/* Desktop filter buttons */}
         <div className="hidden md:flex justify-center mb-8 space-x-3">
-          {examCategories.map((category: string, index: number) => (
+          {allCategories.map((category: string, index: number) => (
             <Button
               key={index}
               variant={activeCategory === category ? "default" : "secondary"}
@@ -69,17 +92,21 @@ export default function CoursesSection() {
           ))}
         </div>
         
-        {isLoading ? (
+        {isLoading || allCoursesLoading ? (
           <div className="flex justify-center py-20">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
           </div>
-        ) : error ? (
+        ) : allCoursesError ? (
           <div className="text-center text-red-500 py-10">
             Failed to load courses. Please try again later.
           </div>
+        ) : filteredCourses.length === 0 ? (
+          <div className="text-center py-10">
+            <p className="text-gray-600">No courses found for this category.</p>
+          </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {courses?.map((course, index) => (
+            {filteredCourses.map((course, index) => (
               <CourseCard key={course.id} course={course} index={index} />
             ))}
           </div>

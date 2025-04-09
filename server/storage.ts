@@ -114,11 +114,11 @@ export class DatabaseStorage implements IStorage {
   
   async getCoursesByCategory(category: string): Promise<Course[]> {
     try {
-      // Use SQL query since drizzle doesn't have a built-in way to query array values
-      const result = await db.execute<Course[]>(
+      // Use custom SQL query to filter by array membership
+      const { rows } = await db.execute<Course>(
         sql`SELECT * FROM courses WHERE ${category} = ANY(categories)`
       );
-      return result || [];
+      return rows as Course[];
     } catch (error) {
       console.error("Error in getCoursesByCategory:", error);
       return [];
