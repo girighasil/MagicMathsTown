@@ -2,12 +2,15 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
-import { EXAM_CATEGORIES } from "@/lib/constants";
 import CourseCard from "./CourseCard";
 import type { Course } from "@/types";
+import { useExamCategories } from "@/hooks/use-site-config";
 
 export default function CoursesSection() {
-  const [activeCategory, setActiveCategory] = useState<string>("All Exams");
+  const { examCategories } = useExamCategories();
+  const defaultCategory = examCategories[0] || "All Exams";
+  
+  const [activeCategory, setActiveCategory] = useState<string>(defaultCategory);
   
   const { data: courses, error, isLoading } = useQuery<Course[]>({
     queryKey: ['/api/courses', activeCategory],
@@ -36,7 +39,7 @@ export default function CoursesSection() {
         {/* Mobile filter buttons (scrollable) */}
         <div className="flex overflow-x-auto pb-2 md:hidden">
           <div className="flex space-x-2">
-            {EXAM_CATEGORIES.map((category, index) => (
+            {examCategories.map((category: string, index: number) => (
               <button
                 key={index}
                 className={`whitespace-nowrap px-4 py-2 rounded font-medium ${
@@ -54,7 +57,7 @@ export default function CoursesSection() {
         
         {/* Desktop filter buttons */}
         <div className="hidden md:flex justify-center mb-8 space-x-3">
-          {EXAM_CATEGORIES.map((category, index) => (
+          {examCategories.map((category: string, index: number) => (
             <Button
               key={index}
               variant={activeCategory === category ? "default" : "secondary"}

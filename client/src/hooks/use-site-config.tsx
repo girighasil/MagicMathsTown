@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { EXAM_CATEGORIES } from "@/lib/constants";
 
 export function useSiteConfig() {
   const { data, isLoading, error, refetch } = useQuery<Record<string, any>>({
@@ -27,5 +28,15 @@ export function useSiteConfigKey(key: string) {
     isLoading,
     error,
     refetch,
+  };
+}
+
+export function useExamCategories() {
+  const { config, isLoading, error } = useSiteConfig();
+  
+  return {
+    examCategories: config.examCategories || EXAM_CATEGORIES,
+    isLoading,
+    error,
   };
 }
