@@ -103,11 +103,26 @@ export class DatabaseStorage implements IStorage {
   
   // Courses
   async getAllCourses(): Promise<Course[]> {
-    return await db.select().from(courses);
+    try {
+      const result = await db.select().from(courses);
+      return result;
+    } catch (error) {
+      console.error("Error in getAllCourses:", error);
+      return [];
+    }
   }
   
   async getCoursesByCategory(category: string): Promise<Course[]> {
-    return await db.select().from(courses).where(eq(courses.category, category));
+    try {
+      // Use SQL query since drizzle doesn't have a built-in way to query array values
+      const result = await db.execute<Course[]>(
+        sql`SELECT * FROM courses WHERE ${category} = ANY(categories)`
+      );
+      return result || [];
+    } catch (error) {
+      console.error("Error in getCoursesByCategory:", error);
+      return [];
+    }
   }
   
   async getCourse(id: number): Promise<Course | undefined> {
@@ -296,7 +311,7 @@ export class DatabaseStorage implements IStorage {
           price: 15999,
           discountPrice: 12999,
           imageUrl: "https://images.unsplash.com/photo-1678893574262-74f8451fea2f",
-          category: "JEE Main/Advanced",
+          categories: ["JEE Main/Advanced", "Mathematics"],
           popular: true,
           isLive: true
         },
@@ -308,7 +323,7 @@ export class DatabaseStorage implements IStorage {
           price: 8999,
           discountPrice: 6499,
           imageUrl: "https://images.unsplash.com/photo-1609743522653-52354461eb27",
-          category: "Banking",
+          categories: ["Banking", "Quantitative Aptitude"],
           popular: false,
           isLive: true
         },
@@ -320,7 +335,7 @@ export class DatabaseStorage implements IStorage {
           price: 7999,
           discountPrice: 5999,
           imageUrl: "https://images.unsplash.com/photo-1635070041078-e363dbe005cb",
-          category: "JEE Main/Advanced",
+          categories: ["JEE Main/Advanced", "IIT-JEE", "Calculus"],
           popular: false,
           isLive: true
         }

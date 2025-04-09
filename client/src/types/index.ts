@@ -7,7 +7,8 @@ export interface Course {
   price: number;
   discountPrice?: number;
   imageUrl: string;
-  category: string;
+  categories: string[];
+  category?: string; // For backward compatibility
   popular: boolean;
   isLive: boolean;
 }

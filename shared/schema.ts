@@ -36,7 +36,7 @@ export const courses = pgTable("courses", {
   price: integer("price").notNull(),
   discountPrice: integer("discount_price"),
   imageUrl: text("image_url").notNull(),
-  category: text("category").notNull(),
+  categories: text("categories").array().notNull(),
   popular: boolean("popular").default(false),
   isLive: boolean("is_live").default(true),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -50,7 +50,7 @@ export const insertCourseSchema = createInsertSchema(courses).pick({
   price: true,
   discountPrice: true,
   imageUrl: true,
-  category: true,
+  categories: true,
   popular: true,
   isLive: true,
 });

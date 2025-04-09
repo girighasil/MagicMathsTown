@@ -75,10 +75,14 @@ export default function CoursesManagement() {
   const courseColumns = [
     { key: 'id', title: 'ID' },
     { key: 'title', title: 'Title' },
-    { key: 'category', title: 'Category' },
-    { key: 'price', title: 'Price', render: (item: any) => `₹${item.price}` },
-    { key: 'popular', title: 'Popular', render: (item: any) => item.popular ? 'Yes' : 'No' },
-    { key: 'isLive', title: 'Live', render: (item: any) => item.isLive ? 'Yes' : 'No' }
+    { key: 'categories', title: 'Categories', render: (item: Course) => 
+      Array.isArray(item.categories) 
+        ? item.categories.join(', ') 
+        : item.category || '-' 
+    },
+    { key: 'price', title: 'Price', render: (item: Course) => `₹${item.price}` },
+    { key: 'popular', title: 'Popular', render: (item: Course) => item.popular ? 'Yes' : 'No' },
+    { key: 'isLive', title: 'Live', render: (item: Course) => item.isLive ? 'Yes' : 'No' }
   ];
 
   return (
@@ -103,9 +107,20 @@ export default function CoursesManagement() {
               ) : (
                 <DataTable 
                   data={courses || []} 
-                  columns={courseColumns} 
-                  apiEndpoint="/api/admin/courses"
-                  idField="id"
+                  columns={courseColumns}
+                  onEdit={(course) => {
+                    // Handle edit course
+                    console.log("Edit course:", course);
+                  }}
+                  onDelete={(course) => {
+                    // Handle delete course
+                    console.log("Delete course:", course);
+                  }}
+                  onAdd={() => {
+                    // Handle add course
+                    console.log("Add new course");
+                  }}
+                  title="Courses" 
                 />
               )}
             </CardContent>
