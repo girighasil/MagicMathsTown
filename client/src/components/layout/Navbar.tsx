@@ -4,10 +4,13 @@ import { Button } from '@/components/ui/button';
 import MobileMenu from './MobileMenu';
 import PromoBanner from './PromoBanner';
 import { SquareRadical } from 'lucide-react';
+import { useSiteConfig } from '@/hooks/use-site-config';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { config, isLoading } = useSiteConfig();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -22,7 +25,15 @@ export default function Navbar() {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
-  const navLinks = [
+  // Define types for navigation links
+  type NavLink = {
+    title: string;
+    path: string;
+  };
+  
+  // Default values if config isn't loaded yet
+  const siteTitle = config.siteTitle || 'Maths Magic Town';
+  const navLinks: NavLink[] = config.navLinks || [
     { title: 'Home', path: '#home' },
     { title: 'Courses', path: '#courses' },
     { title: 'Doubt Classes', path: '#doubt-classes' },
@@ -39,7 +50,11 @@ export default function Navbar() {
             <div className="bg-primary rounded-lg p-2 mr-2">
               <SquareRadical className="h-6 w-6 text-white" />
             </div>
-            <span className="font-bold text-xl text-primary">Maths Magic Town</span>
+            {isLoading ? (
+              <Skeleton className="h-6 w-40 bg-gray-200" />
+            ) : (
+              <span className="font-bold text-xl text-primary">{siteTitle}</span>
+            )}
           </Link>
         </div>
         
@@ -55,7 +70,7 @@ export default function Navbar() {
         
         <div className="hidden md:flex flex-col md:flex-row w-full md:w-auto md:items-center mt-4 md:mt-0">
           <ul className="flex flex-col md:flex-row md:items-center md:space-x-8 space-y-2 md:space-y-0">
-            {navLinks.map((link, index) => (
+            {navLinks.map((link: NavLink, index: number) => (
               <li key={index}>
                 <a 
                   href={link.path} 

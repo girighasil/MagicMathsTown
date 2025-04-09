@@ -1,7 +1,22 @@
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
+import { useSiteConfig } from "@/hooks/use-site-config";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function HeroSection() {
+  const { config, isLoading } = useSiteConfig();
+  
+  // Default values if config isn't loaded yet
+  const hero = config.hero || {
+    title: "Ace Your Math Competitive Exams",
+    subtitle: "Personalized coaching, expert doubt resolution, and comprehensive practice tests for JEE, NEET, NDA, and more.",
+    primaryButtonText: "Explore Courses",
+    primaryButtonUrl: "#courses",
+    secondaryButtonText: "Try Free Demo",
+    secondaryButtonUrl: "#",
+    backgroundImage: "https://images.unsplash.com/photo-1509062522246-3755977927d7?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
+  };
+
   return (
     <section id="home" className="bg-gradient-to-r from-primary to-primary-dark text-white">
       <div className="container mx-auto px-4 py-16 md:py-24">
@@ -12,20 +27,33 @@ export default function HeroSection() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <h1 className="font-bold text-3xl md:text-4xl lg:text-5xl mb-4">
-              Ace Your Math Competitive Exams
-            </h1>
-            <p className="text-lg mb-8 text-gray-100">
-              Personalized coaching, expert doubt resolution, and comprehensive practice tests for JEE, NEET, NDA, and more.
-            </p>
-            <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4">
-              <Button size="lg" className="bg-white text-primary hover:bg-gray-100">
-                <a href="#courses">Explore Courses</a>
-              </Button>
-              <Button size="lg" className="bg-[#D97706] hover:bg-[#B45309] text-white">
-                Try Free Demo
-              </Button>
-            </div>
+            {isLoading ? (
+              <>
+                <Skeleton className="h-12 w-3/4 bg-white/20 mb-4" />
+                <Skeleton className="h-20 w-full bg-white/20 mb-8" />
+                <div className="flex space-x-4">
+                  <Skeleton className="h-12 w-32 bg-white/20" />
+                  <Skeleton className="h-12 w-32 bg-white/20" />
+                </div>
+              </>
+            ) : (
+              <>
+                <h1 className="font-bold text-3xl md:text-4xl lg:text-5xl mb-4">
+                  {hero.title}
+                </h1>
+                <p className="text-lg mb-8 text-gray-100">
+                  {hero.subtitle}
+                </p>
+                <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4">
+                  <Button size="lg" className="bg-white text-primary hover:bg-gray-100">
+                    <a href={hero.primaryButtonUrl}>{hero.primaryButtonText}</a>
+                  </Button>
+                  <Button size="lg" className="bg-[#D97706] hover:bg-[#B45309] text-white">
+                    <a href={hero.secondaryButtonUrl}>{hero.secondaryButtonText}</a>
+                  </Button>
+                </div>
+              </>
+            )}
           </motion.div>
           
           <motion.div 
@@ -34,11 +62,15 @@ export default function HeroSection() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
           >
-            <img 
-              src="https://images.unsplash.com/photo-1509062522246-3755977927d7?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" 
-              alt="Students studying mathematics" 
-              className="rounded-lg shadow-lg w-full h-auto object-cover"
-            />
+            {isLoading ? (
+              <Skeleton className="h-64 w-full bg-white/20 rounded-lg" />
+            ) : (
+              <img 
+                src={hero.backgroundImage} 
+                alt="Students studying mathematics" 
+                className="rounded-lg shadow-lg w-full h-auto object-cover"
+              />
+            )}
           </motion.div>
         </div>
       </div>

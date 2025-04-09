@@ -383,6 +383,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Site Configuration Routes
+  app.get("/api/site-config", async (req: Request, res: Response) => {
+    try {
+      const config = await storage.getAllSiteConfig();
+      res.json(config);
+    } catch (error: any) {
+      console.error("Error fetching site config:", error);
+      res.status(500).json({ message: "Failed to fetch site configuration", error });
+    }
+  });
+  
+  app.get("/api/site-config/:key", async (req: Request, res: Response) => {
+    try {
+      const key = req.params.key;
+      const value = await storage.getSiteConfig(key);
+      
+      if (value === null) {
+        return res.status(404).json({ message: "Configuration not found" });
+      }
+      
+      res.json({ key, value });
+    } catch (error: any) {
+      console.error("Error fetching site config key:", error);
+      res.status(500).json({ message: "Failed to fetch configuration", error });
+    }
+  });
+  
+  app.put("/api/admin/site-config/:key", isAdmin, async (req: Request, res: Response) => {
+    try {
+      const key = req.params.key;
+      const { value } = req.body;
+      
+      if (value === undefined) {
+        return res.status(400).json({ message: "Value is required" });
+      }
+      
+      await storage.updateSiteConfig(key, value);
+      res.json({ message: "Configuration updated successfully", key, value });
+    } catch (error: any) {
+      console.error("Error updating site config:", error);
+      res.status(500).json({ message: "Failed to update configuration", error });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

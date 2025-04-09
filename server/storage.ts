@@ -5,7 +5,8 @@ import {
   testSeries, type TestSeries, type InsertTestSeries,
   testimonials, type Testimonial, type InsertTestimonial,
   contacts, type Contact, type InsertContact,
-  faqs, type FAQ, type InsertFAQ
+  faqs, type FAQ, type InsertFAQ,
+  siteConfig, type SiteConfig, type InsertSiteConfig
 } from "@shared/schema";
 
 export interface IStorage {
@@ -55,6 +56,11 @@ export interface IStorage {
   createFAQ(faq: InsertFAQ): Promise<FAQ>;
   updateFAQ(id: number, faq: Partial<InsertFAQ>): Promise<FAQ>;
   deleteFAQ(id: number): Promise<void>;
+  
+  // Site Configuration
+  getSiteConfig(key: string): Promise<any>;
+  getAllSiteConfig(): Promise<Record<string, any>>;
+  updateSiteConfig(key: string, value: any): Promise<void>;
 }
 
 import { db } from "./db";
@@ -240,6 +246,39 @@ export class DatabaseStorage implements IStorage {
   
   async deleteFAQ(id: number): Promise<void> {
     await db.delete(faqs).where(eq(faqs.id, id));
+  }
+  
+  // Site Configuration
+  async getSiteConfig(key: string): Promise<any> {
+    const [config] = await db.select().from(siteConfig).where(eq(siteConfig.key, key));
+    return config ? config.value : null;
+  }
+  
+  async getAllSiteConfig(): Promise<Record<string, any>> {
+    const configs = await db.select().from(siteConfig);
+    const result: Record<string, any> = {};
+    
+    for (const config of configs) {
+      result[config.key] = config.value;
+    }
+    
+    return result;
+  }
+  
+  async updateSiteConfig(key: string, value: any): Promise<void> {
+    const existing = await db.select().from(siteConfig).where(eq(siteConfig.key, key));
+    
+    if (existing.length > 0) {
+      await db
+        .update(siteConfig)
+        .set({ value, updatedAt: new Date() })
+        .where(eq(siteConfig.key, key));
+    } else {
+      await db.insert(siteConfig).values({
+        key,
+        value,
+      });
+    }
   }
   
   // Initialize the database with sample data
