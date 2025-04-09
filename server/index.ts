@@ -46,6 +46,8 @@ app.use((req, res, next) => {
     res.status(status).json({ message });
     throw err;
   });
+  
+  // Remove the client-side routes handler to avoid conflicts with Vite
 
   // importantly only setup vite in development and after
   // setting up all the other routes so the catch-all route

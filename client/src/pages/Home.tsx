@@ -74,6 +74,19 @@ export default function Home() {
         <FaqSection />
         <ContactSection />
         <CTABanner />
+        
+        {/* Admin Login Link */}
+        <div className="py-8 bg-gray-50">
+          <div className="container mx-auto text-center">
+            <h3 className="text-lg font-medium mb-4">Admin Access</h3>
+            <a 
+              href="/login"
+              className="inline-flex items-center justify-center px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors"
+            >
+              Admin Login
+            </a>
+          </div>
+        </div>
       </main>
       
       <Footer />

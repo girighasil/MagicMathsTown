@@ -3,6 +3,7 @@ import Home from "@/pages/Home";
 import NotFound from "@/pages/not-found";
 import AuthPage from "@/pages/auth-page";
 import AdminDashboard from "@/pages/admin";
+import LoginPage from "@/pages/LoginPage";
 import { Suspense, lazy } from "react";
 import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute } from "@/components/common/ProtectedRoute";
@@ -23,6 +24,7 @@ function Router() {
       <Switch>
         <Route path="/" component={Home} />
         <Route path="/auth" component={AuthPage} />
+        <Route path="/login" component={LoginPage} />
         <ProtectedRoute path="/admin" adminOnly>
           <AdminDashboard />
         </ProtectedRoute>
