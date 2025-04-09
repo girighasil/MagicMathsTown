@@ -1,5 +1,6 @@
 import { pgTable, text, serial, integer, boolean, timestamp, varchar } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
+import { relations } from "drizzle-orm";
 import { z } from "zod";
 
 export const users = pgTable("users", {
@@ -19,6 +20,10 @@ export const insertUserSchema = createInsertSchema(users).pick({
   fullName: true,
   phone: true,
 });
+
+export const usersRelations = relations(users, ({ many }) => ({
+  doubtSessions: many(doubtSessions),
+}));
 
 export const courses = pgTable("courses", {
   id: serial("id").primaryKey(),
@@ -55,7 +60,7 @@ export const doubtSessions = pgTable("doubt_sessions", {
   timeSlot: text("time_slot").notNull(),
   description: text("description").notNull(),
   imageUrl: text("image_url"),
-  userId: integer("user_id"),
+  userId: integer("user_id").references(() => users.id),
   name: text("name").notNull(),
   email: text("email").notNull(),
   phone: text("phone"),
@@ -74,6 +79,13 @@ export const insertDoubtSessionSchema = createInsertSchema(doubtSessions).pick({
   email: true,
   phone: true,
 });
+
+export const doubtSessionsRelations = relations(doubtSessions, ({ one }) => ({
+  user: one(users, {
+    fields: [doubtSessions.userId],
+    references: [users.id],
+  }),
+}));
 
 export const testSeries = pgTable("test_series", {
   id: serial("id").primaryKey(),

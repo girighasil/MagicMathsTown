@@ -1,6 +1,6 @@
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
-import { storage } from "./storage";
+import { storage, DatabaseStorage } from "./storage";
 import { 
   insertUserSchema, 
   insertDoubtSessionSchema, 
@@ -8,6 +8,15 @@ import {
 } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Initialize the database with sample data
+  if (storage instanceof DatabaseStorage) {
+    try {
+      await storage.setupInitialData();
+      console.log("Database initialized with sample data");
+    } catch (error) {
+      console.error("Error initializing database:", error);
+    }
+  }
   // API routes
   app.get("/api/courses", async (req: Request, res: Response) => {
     try {
