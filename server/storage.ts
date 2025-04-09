@@ -12,34 +12,49 @@ export interface IStorage {
   // Users
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
+  getUsersByRole(role: string): Promise<User[]>;
   createUser(user: InsertUser): Promise<User>;
+  updateUser(id: number, user: Partial<InsertUser>): Promise<User>;
+  deleteUser(id: number): Promise<void>;
   
   // Courses
   getAllCourses(): Promise<Course[]>;
   getCoursesByCategory(category: string): Promise<Course[]>;
   getCourse(id: number): Promise<Course | undefined>;
   createCourse(course: InsertCourse): Promise<Course>;
+  updateCourse(id: number, course: Partial<InsertCourse>): Promise<Course>;
+  deleteCourse(id: number): Promise<void>;
   
   // Doubt Sessions
   createDoubtSession(session: InsertDoubtSession): Promise<DoubtSession>;
   getDoubtSessionsByUser(userId: number): Promise<DoubtSession[]>;
   getAllDoubtSessions(): Promise<DoubtSession[]>;
+  updateDoubtSession(id: number, session: Partial<InsertDoubtSession>): Promise<DoubtSession>;
+  deleteDoubtSession(id: number): Promise<void>;
   
   // Test Series
   getAllTestSeries(): Promise<TestSeries[]>;
   getTestSeries(id: number): Promise<TestSeries | undefined>;
   createTestSeries(testSeries: InsertTestSeries): Promise<TestSeries>;
+  updateTestSeries(id: number, testSeries: Partial<InsertTestSeries>): Promise<TestSeries>;
+  deleteTestSeries(id: number): Promise<void>;
   
   // Testimonials
   getAllTestimonials(): Promise<Testimonial[]>;
   createTestimonial(testimonial: InsertTestimonial): Promise<Testimonial>;
+  updateTestimonial(id: number, testimonial: Partial<InsertTestimonial>): Promise<Testimonial>;
+  deleteTestimonial(id: number): Promise<void>;
   
   // Contact Messages
   createContact(contact: InsertContact): Promise<Contact>;
+  getAllContacts(): Promise<Contact[]>;
+  deleteContact(id: number): Promise<void>;
   
   // FAQs
   getAllFAQs(): Promise<FAQ[]>;
   createFAQ(faq: InsertFAQ): Promise<FAQ>;
+  updateFAQ(id: number, faq: Partial<InsertFAQ>): Promise<FAQ>;
+  deleteFAQ(id: number): Promise<void>;
 }
 
 import { db } from "./db";
@@ -57,10 +72,27 @@ export class DatabaseStorage implements IStorage {
     const [user] = await db.select().from(users).where(eq(users.username, username));
     return user;
   }
+  
+  async getUsersByRole(role: string): Promise<User[]> {
+    return await db.select().from(users).where(eq(users.role, role));
+  }
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const [user] = await db.insert(users).values(insertUser).returning();
     return user;
+  }
+  
+  async updateUser(id: number, updateData: Partial<InsertUser>): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set(updateData)
+      .where(eq(users.id, id))
+      .returning();
+    return user;
+  }
+  
+  async deleteUser(id: number): Promise<void> {
+    await db.delete(users).where(eq(users.id, id));
   }
   
   // Courses
@@ -82,6 +114,19 @@ export class DatabaseStorage implements IStorage {
     return course;
   }
   
+  async updateCourse(id: number, courseData: Partial<InsertCourse>): Promise<Course> {
+    const [course] = await db
+      .update(courses)
+      .set(courseData)
+      .where(eq(courses.id, id))
+      .returning();
+    return course;
+  }
+  
+  async deleteCourse(id: number): Promise<void> {
+    await db.delete(courses).where(eq(courses.id, id));
+  }
+  
   // Doubt Sessions
   async createDoubtSession(insertSession: InsertDoubtSession): Promise<DoubtSession> {
     const [session] = await db.insert(doubtSessions).values(insertSession).returning();
@@ -94,6 +139,19 @@ export class DatabaseStorage implements IStorage {
   
   async getAllDoubtSessions(): Promise<DoubtSession[]> {
     return await db.select().from(doubtSessions);
+  }
+  
+  async updateDoubtSession(id: number, sessionData: Partial<InsertDoubtSession>): Promise<DoubtSession> {
+    const [session] = await db
+      .update(doubtSessions)
+      .set(sessionData)
+      .where(eq(doubtSessions.id, id))
+      .returning();
+    return session;
+  }
+  
+  async deleteDoubtSession(id: number): Promise<void> {
+    await db.delete(doubtSessions).where(eq(doubtSessions.id, id));
   }
   
   // Test Series
@@ -111,6 +169,19 @@ export class DatabaseStorage implements IStorage {
     return series;
   }
   
+  async updateTestSeries(id: number, testSeriesData: Partial<InsertTestSeries>): Promise<TestSeries> {
+    const [series] = await db
+      .update(testSeries)
+      .set(testSeriesData)
+      .where(eq(testSeries.id, id))
+      .returning();
+    return series;
+  }
+  
+  async deleteTestSeries(id: number): Promise<void> {
+    await db.delete(testSeries).where(eq(testSeries.id, id));
+  }
+  
   // Testimonials
   async getAllTestimonials(): Promise<Testimonial[]> {
     return await db.select().from(testimonials);
@@ -121,10 +192,31 @@ export class DatabaseStorage implements IStorage {
     return testimonial;
   }
   
+  async updateTestimonial(id: number, testimonialData: Partial<InsertTestimonial>): Promise<Testimonial> {
+    const [testimonial] = await db
+      .update(testimonials)
+      .set(testimonialData)
+      .where(eq(testimonials.id, id))
+      .returning();
+    return testimonial;
+  }
+  
+  async deleteTestimonial(id: number): Promise<void> {
+    await db.delete(testimonials).where(eq(testimonials.id, id));
+  }
+  
   // Contact Messages
   async createContact(insertContact: InsertContact): Promise<Contact> {
     const [contact] = await db.insert(contacts).values(insertContact).returning();
     return contact;
+  }
+  
+  async getAllContacts(): Promise<Contact[]> {
+    return await db.select().from(contacts).orderBy(desc(contacts.createdAt));
+  }
+  
+  async deleteContact(id: number): Promise<void> {
+    await db.delete(contacts).where(eq(contacts.id, id));
   }
   
   // FAQs
@@ -135,6 +227,19 @@ export class DatabaseStorage implements IStorage {
   async createFAQ(insertFAQ: InsertFAQ): Promise<FAQ> {
     const [faq] = await db.insert(faqs).values(insertFAQ).returning();
     return faq;
+  }
+  
+  async updateFAQ(id: number, faqData: Partial<InsertFAQ>): Promise<FAQ> {
+    const [faq] = await db
+      .update(faqs)
+      .set(faqData)
+      .where(eq(faqs.id, id))
+      .returning();
+    return faq;
+  }
+  
+  async deleteFAQ(id: number): Promise<void> {
+    await db.delete(faqs).where(eq(faqs.id, id));
   }
   
   // Initialize the database with sample data

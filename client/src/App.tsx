@@ -1,7 +1,13 @@
 import { Switch, Route } from "wouter";
 import Home from "@/pages/Home";
 import NotFound from "@/pages/not-found";
+import AuthPage from "@/pages/auth-page";
+import AdminDashboard from "@/pages/admin";
 import { Suspense, lazy } from "react";
+import { AuthProvider } from "@/hooks/use-auth";
+import { ProtectedRoute } from "@/components/common/ProtectedRoute";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { queryClient } from "@/lib/queryClient";
 
 function LoadingFallback() {
   return (
@@ -16,6 +22,10 @@ function Router() {
     <Suspense fallback={<LoadingFallback />}>
       <Switch>
         <Route path="/" component={Home} />
+        <Route path="/auth" component={AuthPage} />
+        <ProtectedRoute path="/admin" adminOnly>
+          <AdminDashboard />
+        </ProtectedRoute>
         <Route component={NotFound} />
       </Switch>
     </Suspense>
@@ -23,7 +33,13 @@ function Router() {
 }
 
 function App() {
-  return <Router />;
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <Router />
+      </AuthProvider>
+    </QueryClientProvider>
+  );
 }
 
 export default App;
