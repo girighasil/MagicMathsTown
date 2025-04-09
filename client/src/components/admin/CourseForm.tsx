@@ -226,7 +226,7 @@ export function CourseForm({ course, onSubmit, onCancel, isSubmitting }: CourseF
         <Card>
           <CardContent className="p-4">
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-              {examCategories.map((category) => (
+              {examCategories.map((category: string) => (
                 <div key={category} className="flex items-center space-x-2">
                   <Checkbox 
                     id={`category-${category}`} 

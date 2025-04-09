@@ -9,16 +9,23 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2, Plus, Trash } from 'lucide-react';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { EXAM_CATEGORIES } from '@/lib/constants';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { DataTable } from '@/components/admin/DataTable';
 import { Course } from '@/types';
+import { CourseForm } from '@/components/admin/CourseForm';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 export default function CoursesManagement() {
   const { toast } = useToast();
   const [saving, setSaving] = useState(false);
   const [examCategories, setExamCategories] = useState<string[]>([]);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
-  const { data: courses, isLoading: coursesLoading } = useQuery<Course[]>({
+  const { data: courses, isLoading: coursesLoading, refetch: refetchCourses } = useQuery<Course[]>({
     queryKey: ['/api/courses'],
   });
   
@@ -31,6 +38,76 @@ export default function CoursesManagement() {
       setExamCategories(config.examCategories || EXAM_CATEGORIES);
     }
   }, [config]);
+  
+  // Course mutations
+  const createCourseMutation = useMutation({
+    mutationFn: async (data: Omit<Course, 'id' | 'createdAt'>) => {
+      const response = await apiRequest('POST', '/api/admin/courses', data);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Course created',
+        description: 'The course has been created successfully.',
+      });
+      refetchCourses();
+      setIsEditDialogOpen(false);
+      setIsSubmitting(false);
+    },
+    onError: (error) => {
+      toast({
+        title: 'Error creating course',
+        description: error.message || 'An error occurred while creating the course.',
+        variant: 'destructive',
+      });
+      setIsSubmitting(false);
+    }
+  });
+  
+  const updateCourseMutation = useMutation({
+    mutationFn: async (data: { id: number; courseData: Partial<Course> }) => {
+      const response = await apiRequest('PUT', `/api/admin/courses/${data.id}`, data.courseData);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Course updated',
+        description: 'The course has been updated successfully.',
+      });
+      refetchCourses();
+      setIsEditDialogOpen(false);
+      setIsSubmitting(false);
+    },
+    onError: (error) => {
+      toast({
+        title: 'Error updating course',
+        description: error.message || 'An error occurred while updating the course.',
+        variant: 'destructive',
+      });
+      setIsSubmitting(false);
+    }
+  });
+  
+  const deleteCourseMutation = useMutation({
+    mutationFn: async (id: number) => {
+      await apiRequest('DELETE', `/api/admin/courses/${id}`);
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Course deleted',
+        description: 'The course has been deleted successfully.',
+      });
+      refetchCourses();
+      setIsDeleteDialogOpen(false);
+    },
+    onError: (error) => {
+      toast({
+        title: 'Error deleting course',
+        description: error.message || 'An error occurred while deleting the course.',
+        variant: 'destructive',
+      });
+    }
+  });
   
   // Exam category operations
   const addExamCategory = () => {
@@ -71,7 +148,37 @@ export default function CoursesManagement() {
       setSaving(false);
     }
   };
-
+  
+  // Course form handlers
+  const handleAddCourse = () => {
+    setSelectedCourse(null);
+    setIsEditDialogOpen(true);
+  };
+  
+  const handleEditCourse = (course: Course) => {
+    setSelectedCourse(course);
+    setIsEditDialogOpen(true);
+  };
+  
+  const handleDeleteCourse = (course: Course) => {
+    setSelectedCourse(course);
+    setIsDeleteDialogOpen(true);
+  };
+  
+  const handleSubmitCourse = (courseData: any) => {
+    setIsSubmitting(true);
+    if (selectedCourse) {
+      // Update existing course
+      updateCourseMutation.mutate({
+        id: selectedCourse.id,
+        courseData
+      });
+    } else {
+      // Create new course
+      createCourseMutation.mutate(courseData);
+    }
+  };
+  
   const courseColumns = [
     { key: 'id', title: 'ID' },
     { key: 'title', title: 'Title' },
@@ -108,18 +215,9 @@ export default function CoursesManagement() {
                 <DataTable 
                   data={courses || []} 
                   columns={courseColumns}
-                  onEdit={(course) => {
-                    // Handle edit course
-                    console.log("Edit course:", course);
-                  }}
-                  onDelete={(course) => {
-                    // Handle delete course
-                    console.log("Delete course:", course);
-                  }}
-                  onAdd={() => {
-                    // Handle add course
-                    console.log("Add new course");
-                  }}
+                  onEdit={handleEditCourse}
+                  onDelete={handleDeleteCourse}
+                  onAdd={handleAddCourse}
                   title="Courses" 
                 />
               )}
@@ -166,6 +264,46 @@ export default function CoursesManagement() {
           </Card>
         </TabsContent>
       </Tabs>
+      
+      {/* Edit/Add Course Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{selectedCourse ? 'Edit Course' : 'Add New Course'}</DialogTitle>
+          </DialogHeader>
+          <CourseForm 
+            course={selectedCourse || undefined}
+            onSubmit={handleSubmitCourse}
+            onCancel={() => setIsEditDialogOpen(false)}
+            isSubmitting={isSubmitting}
+          />
+        </DialogContent>
+      </Dialog>
+      
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete the course "{selectedCourse?.title}". 
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={() => selectedCourse && deleteCourseMutation.mutate(selectedCourse.id)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleteCourseMutation.isPending && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AdminLayout>
   );
 }
