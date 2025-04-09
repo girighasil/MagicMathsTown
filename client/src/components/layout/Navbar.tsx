@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'wouter';
 import { Button } from '@/components/ui/button';
 import MobileMenu from './MobileMenu';
+import PromoBanner from './PromoBanner';
 import { SquareRadical } from 'lucide-react';
 
 export default function Navbar() {
@@ -76,6 +77,7 @@ export default function Navbar() {
         </div>
       </nav>
       
+      <PromoBanner />
       <MobileMenu isOpen={isMobileMenuOpen} onClose={toggleMobileMenu} links={navLinks} />
     </header>
   );

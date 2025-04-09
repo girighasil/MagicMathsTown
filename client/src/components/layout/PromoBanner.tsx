@@ -43,7 +43,7 @@ export default function PromoBanner() {
   if (!isVisible) return null;
 
   return (
-    <div className="bg-gradient-to-r from-primary via-primary-dark to-primary text-white py-2 relative overflow-hidden">
+    <div className="bg-gradient-to-r from-primary via-primary-dark to-primary text-white py-1.5 relative overflow-hidden border-t border-white/10">
       <div className="absolute inset-0 opacity-10">
         <div className="absolute inset-0 bg-[radial-gradient(white,_transparent_60%)] bg-left"></div>
       </div>
@@ -51,39 +51,41 @@ export default function PromoBanner() {
         <div className="flex items-center justify-center">
           <button
             onClick={prevAnnouncement}
-            className="hidden sm:flex p-1 rounded-full hover:bg-white/20 transition-colors mr-3 z-10"
+            className="hidden sm:flex p-1 rounded-full hover:bg-white/20 transition-colors mr-2 z-10"
             aria-label="Previous announcement"
           >
-            <ChevronLeft className="h-4 w-4" />
+            <ChevronLeft className="h-3.5 w-3.5" />
           </button>
           
           <div className="overflow-hidden w-full">
             <AnimatePresence mode="wait">
               <motion.div
                 key={currentIndex}
-                initial={{ y: 10, opacity: 0 }}
+                initial={{ y: 8, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
-                exit={{ y: -10, opacity: 0 }}
+                exit={{ y: -8, opacity: 0 }}
                 transition={{ duration: 0.3 }}
-                className="text-center font-medium text-sm sm:text-base whitespace-nowrap overflow-hidden text-ellipsis"
+                className="text-center font-medium text-xs sm:text-sm whitespace-nowrap overflow-hidden text-ellipsis"
               >
                 <div className="relative sm:static">
                   <motion.span
-                    className="inline-block sm:static"
+                    className="inline-block sm:hidden"
                     animate={{
-                      x: [-20, 0],
+                      x: ["100%", "-100%"],
                     }}
                     transition={{
                       x: {
                         repeat: Infinity,
-                        repeatType: "reverse",
-                        duration: 8,
+                        duration: 15,
                         ease: "linear",
                       },
                     }}
                   >
                     {announcements[currentIndex]}
                   </motion.span>
+                  <span className="hidden sm:inline">
+                    {announcements[currentIndex]}
+                  </span>
                 </div>
               </motion.div>
             </AnimatePresence>
@@ -91,10 +93,10 @@ export default function PromoBanner() {
           
           <button
             onClick={nextAnnouncement}
-            className="hidden sm:flex p-1 rounded-full hover:bg-white/20 transition-colors mx-3 z-10"
+            className="hidden sm:flex p-1 rounded-full hover:bg-white/20 transition-colors mx-2 z-10"
             aria-label="Next announcement"
           >
-            <ChevronRight className="h-4 w-4" />
+            <ChevronRight className="h-3.5 w-3.5" />
           </button>
           
           <button 
@@ -102,20 +104,20 @@ export default function PromoBanner() {
             className="p-1 rounded-full hover:bg-white/20 transition-colors z-10"
             aria-label="Close banner"
           >
-            <X className="h-4 w-4" />
+            <X className="h-3.5 w-3.5" />
           </button>
         </div>
         
         {/* Indicators */}
-        <div className="flex justify-center space-x-1 mt-1">
+        <div className="flex justify-center space-x-1">
           {announcements.map((_, index) => (
             <button
               key={index}
               onClick={() => setCurrentIndex(index)}
-              className={`h-1 transition-all ${
+              className={`h-0.5 transition-all ${
                 index === currentIndex 
-                  ? "w-4 bg-white" 
-                  : "w-2 bg-white/40 hover:bg-white/60"
+                  ? "w-3 bg-white" 
+                  : "w-1.5 bg-white/40 hover:bg-white/60"
               } rounded-full`}
               aria-label={`Announcement ${index + 1}`}
             />

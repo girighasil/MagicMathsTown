@@ -61,7 +61,6 @@ export default function Home() {
   
   return (
     <>
-      <PromoBanner />
       <Navbar />
       
       <main>
