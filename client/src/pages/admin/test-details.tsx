@@ -345,29 +345,18 @@ function TestDetails() {
     },
   ];
 
-  // Create a stable mutation function that doesn't depend on testSeries
-  const publishUnpublishMutation = useMutation({
-    mutationFn: async (isCurrentlyPublished: boolean) => {
-      // Create a new object for the update data
-      const updateData = { 
-        isPublished: !isCurrentlyPublished 
-      };
-      
-      // Call the API
-      return await apiRequest("PUT", `/api/admin/test-series/${id}`, updateData);
+  // Simple mutation to update test series
+  const updateTestSeriesMutation = useMutation({
+    mutationFn: async (data: { isPublished: boolean }) => {
+      return await apiRequest("PUT", `/api/admin/test-series/${id}`, data);
     },
-    onSuccess: (_, isCurrentlyPublished) => {
-      // Show success message
-      toast({
-        title: "Success",
-        description: isCurrentlyPublished 
-          ? "Test series unpublished successfully" 
-          : "Test series published successfully",
-      });
-      
+    onSuccess: () => {
       // Invalidate queries
       queryClient.invalidateQueries({ queryKey: ['/api/test-series'] });
       queryClient.invalidateQueries({ queryKey: ['/api/test-series', parseInt(id)] });
+      
+      // Force refresh of current page data
+      queryClient.refetchQueries({ queryKey: ['/api/test-series', parseInt(id)] });
     },
     onError: (error: any) => {
       toast({
@@ -378,18 +367,26 @@ function TestDetails() {
     },
   });
 
-  const handlePublishToggle = useCallback(() => {
-    if (!testSeries) {
-      toast({
-        title: "Error",
-        description: "Test series data is not loaded yet. Please try again.",
-        variant: "destructive",
-      });
-      return;
-    }
+  // Handle publish/unpublish as a separate function
+  const handlePublishToggle = () => {
+    if (!testSeries) return;
     
-    publishUnpublishMutation.mutate(!!testSeries.isPublished);
-  }, [testSeries, publishUnpublishMutation]);
+    const newPublishStatus = !testSeries.isPublished;
+    
+    updateTestSeriesMutation.mutate(
+      { isPublished: newPublishStatus },
+      {
+        onSuccess: () => {
+          toast({
+            title: "Success",
+            description: newPublishStatus 
+              ? "Test series published successfully" 
+              : "Test series unpublished successfully",
+          });
+        }
+      }
+    );
+  };
 
   return (
     <AdminLayout title="Test Management">
@@ -438,9 +435,9 @@ function TestDetails() {
                   <Button 
                     variant={testSeries.isPublished ? "outline" : "default"}
                     onClick={handlePublishToggle}
-                    disabled={publishUnpublishMutation.isPending || !seriesTests?.length}
+                    disabled={updateTestSeriesMutation.isPending || !seriesTests?.length}
                   >
-                    {publishUnpublishMutation.isPending ? (
+                    {updateTestSeriesMutation.isPending ? (
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     ) : testSeries.isPublished ? (
                       <EyeOff className="mr-2 h-4 w-4" />
