@@ -12,7 +12,8 @@ import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Loader2, Plus, FileUp, ExternalLink, Edit, Trash2 } from "lucide-react";
+import { Loader2, Plus, FileUp, ExternalLink, Edit, Trash2, Link as LinkIcon } from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -31,6 +32,61 @@ const testSchema = z.object({
 });
 
 type TestFormValues = z.infer<typeof testSchema>;
+
+// Link Test Button Component
+function LinkTestButton({ testId, testSeriesId }: { testId: number, testSeriesId: number }) {
+  const { toast } = useToast();
+  const [isLinking, setIsLinking] = useState(false);
+
+  const linkTestMutation = useMutation({
+    mutationFn: async () => {
+      setIsLinking(true);
+      return await apiRequest(
+        "POST", 
+        `/api/admin/test-series/${testSeriesId}/link-test`, 
+        { testId }
+      );
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Test linked to test series successfully",
+      });
+      // Invalidate both queries
+      queryClient.invalidateQueries({ queryKey: ['/api/tests'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/test-series', testSeriesId, 'tests'] });
+      setIsLinking(false);
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: `Failed to link test: ${error.message}`,
+        variant: "destructive",
+      });
+      setIsLinking(false);
+    },
+  });
+
+  const handleLinkTest = () => {
+    linkTestMutation.mutate();
+  };
+
+  return (
+    <Button 
+      variant="outline" 
+      size="sm"
+      onClick={handleLinkTest}
+      disabled={isLinking}
+    >
+      {isLinking ? (
+        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+      ) : (
+        <LinkIcon className="h-4 w-4 mr-2" />
+      )}
+      Link to Series
+    </Button>
+  );
+}
 
 function TestDetails() {
   const { id } = useParams<{ id: string }>();
@@ -51,12 +107,24 @@ function TestDetails() {
     },
   });
 
-  const { data: tests, isLoading: isLoadingTests } = useQuery({
+  const { data: seriesTests, isLoading: isLoadingSeriesTests } = useQuery({
     queryKey: ['/api/test-series', parseInt(id), 'tests'],
     queryFn: async () => {
       const response = await fetch(`/api/test-series/${id}/tests`);
       if (!response.ok) {
-        throw new Error('Failed to fetch tests');
+        throw new Error('Failed to fetch tests for this series');
+      }
+      return response.json();
+    },
+  });
+  
+  // Get all available tests to allow linking tests to this test series
+  const { data: allTests, isLoading: isLoadingAllTests } = useQuery({
+    queryKey: ['/api/tests'],
+    queryFn: async () => {
+      const response = await fetch('/api/tests');
+      if (!response.ok) {
+        throw new Error('Failed to fetch all tests');
       }
       return response.json();
     },
@@ -288,27 +356,84 @@ function TestDetails() {
           </Button>
         </div>
 
-        {isLoadingTests ? (
+        {isLoadingSeriesTests || isLoadingAllTests ? (
           <div className="flex justify-center my-12">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         ) : (
-          <Card>
-            <CardHeader>
-              <CardTitle>Tests</CardTitle>
-              <CardDescription>
-                Manage tests for this test series. Click on a test to view and manage its questions.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <SimpleDataTable
-                columns={columns}
-                data={tests || []}
-                searchField="title"
-                searchPlaceholder="Search tests..."
-              />
-            </CardContent>
-          </Card>
+          <>
+            <Card className="mb-8">
+              <CardHeader>
+                <CardTitle>Tests in this Series</CardTitle>
+                <CardDescription>
+                  Manage tests for this test series. Click on a test to view and manage its questions.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {seriesTests && seriesTests.length > 0 ? (
+                  <SimpleDataTable
+                    columns={columns}
+                    data={seriesTests}
+                    searchField="title"
+                    searchPlaceholder="Search tests..."
+                  />
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No tests found in this series. Add a new test or link an existing test below.
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Link Existing Tests</CardTitle>
+                <CardDescription>
+                  You can link existing tests to this test series.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {allTests && allTests.filter(test => !test.testSeriesId || test.testSeriesId !== parseInt(id)).length > 0 ? (
+                  <div className="space-y-4">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Title</TableHead>
+                          <TableHead>Duration</TableHead>
+                          <TableHead>Total Marks</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {allTests
+                          .filter(test => !test.testSeriesId || test.testSeriesId !== parseInt(id))
+                          .map((test) => (
+                            <TableRow key={test.id}>
+                              <TableCell>{test.title}</TableCell>
+                              <TableCell>{test.duration} mins</TableCell>
+                              <TableCell>{test.totalMarks}</TableCell>
+                              <TableCell>
+                                <span className={test.isActive ? "text-green-600" : "text-red-600"}>
+                                  {test.isActive ? "Active" : "Inactive"}
+                                </span>
+                              </TableCell>
+                              <TableCell>
+                                <LinkTestButton testId={test.id} testSeriesId={parseInt(id)} />
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No unlinked tests available. Create new tests to link to this series.
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </>
         )}
 
         {/* Add/Edit Test Modal */}
