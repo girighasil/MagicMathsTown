@@ -105,7 +105,8 @@ export function setupAuth(app: Express) {
         username: req.user!.username,
         email: req.user!.email,
         fullName: req.user!.fullName,
-        role: req.user!.role
+        role: req.user!.role,
+        photoUrl: req.user!.photoUrl
       }
     });
   });
@@ -139,7 +140,7 @@ export function setupAuth(app: Express) {
   // Registration route
   app.post("/api/register", async (req, res, next) => {
     try {
-      const { username, password, email, fullName, phone, role } = req.body;
+      const { username, password, email, fullName, phone, photoUrl, role } = req.body;
       
       // Check if username already exists
       const existingUser = await storage.getUserByUsername(username);
@@ -157,6 +158,7 @@ export function setupAuth(app: Express) {
         email,
         fullName,
         phone,
+        photoUrl,
         role: role || "user" // Default to "user" if no role specified
       });
 
@@ -170,7 +172,8 @@ export function setupAuth(app: Express) {
             username: user.username,
             email: user.email,
             fullName: user.fullName,
-            role: user.role
+            role: user.role,
+            photoUrl: user.photoUrl
           }
         });
       });
