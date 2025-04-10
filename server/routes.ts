@@ -1064,6 +1064,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update user profile
+  app.put("/api/users/:id", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = parseInt(req.params.id);
+      
+      // Ensure users can only update their own profile, unless they're admin
+      if (req.user?.id !== userId && req.user?.role !== 'admin') {
+        return res.status(403).json({ message: "Forbidden: You can only update your own profile" });
+      }
+      
+      const { fullName, email, phone } = req.body;
+      
+      // Update user profile
+      const updatedUser = await storage.updateUser(userId, {
+        fullName,
+        email,
+        phone
+      });
+      
+      // Return the updated user without the password
+      const { password, ...userWithoutPassword } = updatedUser;
+      res.json(userWithoutPassword);
+    } catch (error) {
+      console.error("Error updating user profile:", error);
+      res.status(500).json({ message: "Failed to update profile" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

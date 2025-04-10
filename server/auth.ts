@@ -125,7 +125,8 @@ export function setupAuth(app: Express) {
           username: req.user!.username,
           email: req.user!.email,
           fullName: req.user!.fullName,
-          role: req.user!.role
+          role: req.user!.role,
+          phone: req.user!.phone
         }
       });
     } else {
