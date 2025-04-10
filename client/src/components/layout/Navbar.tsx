@@ -15,7 +15,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -120,9 +120,13 @@ export default function Navbar() {
                   <Button variant="ghost" className="relative">
                     <div className="flex items-center gap-2">
                       <Avatar className="h-8 w-8 border border-primary/30">
-                        <AvatarFallback className="text-xs">
-                          {user.username.charAt(0).toUpperCase()}
-                        </AvatarFallback>
+                        {user.photoUrl ? (
+                          <AvatarImage src={user.photoUrl} alt={user.fullName || user.username} />
+                        ) : (
+                          <AvatarFallback className="text-xs">
+                            {user.username.charAt(0).toUpperCase()}
+                          </AvatarFallback>
+                        )}
                       </Avatar>
                       <span className="hidden md:inline-block font-medium">{user.fullName || user.username}</span>
                     </div>
