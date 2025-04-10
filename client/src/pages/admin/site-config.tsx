@@ -177,30 +177,67 @@ export default function SiteConfigManagement() {
   
 
   
+  // Function to resize image and limit size
+  const resizeAndCompressImage = (file: File, maxWidth: number = 300): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target?.result as string;
+        
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          
+          // Calculate new dimensions maintaining aspect ratio
+          if (width > maxWidth) {
+            const ratio = maxWidth / width;
+            width = maxWidth;
+            height = height * ratio;
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
+          
+          // Get the data URL (base64) with reduced quality
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+          resolve(dataUrl);
+        };
+        
+        img.onerror = () => {
+          reject(new Error('Failed to load image'));
+        };
+      };
+      
+      reader.onerror = () => {
+        reject(new Error('Failed to read file'));
+      };
+    });
+  };
+
   // Logo upload handler
   const handleLogoUpload = async (): Promise<string | null> => {
     if (!uploadedLogo) return null;
     
     try {
-      const formData = new FormData();
-      formData.append('file', uploadedLogo);
+      // Check file size first
+      if (uploadedLogo.size > 5 * 1024 * 1024) { // 5MB limit
+        throw new Error('Image file is too large. Maximum size is 5MB.');
+      }
       
-      // If we have an actual API for file uploads, we would use it here
-      // For now, we'll just use the base64 version for demonstration
-      return uploadedLogoPreview;
-      
-      // In a real implementation with a file upload API:
-      // const response = await fetch('/api/admin/upload', {
-      //   method: 'POST',
-      //   body: formData,
-      // });
-      // const data = await response.json();
-      // return data.url;
+      // Resize and compress the image
+      const resizedImage = await resizeAndCompressImage(uploadedLogo);
+      return resizedImage;
     } catch (error) {
-      console.error('Error uploading logo:', error);
+      console.error('Error processing logo:', error);
       toast({
         title: 'Upload failed',
-        description: 'Failed to upload logo image. Please try again or use an image URL instead.',
+        description: error instanceof Error ? error.message : 'Failed to process logo image. Please try a smaller image or use an image URL instead.',
         variant: 'destructive',
       });
       return null;
@@ -562,17 +599,35 @@ export default function SiteConfigManagement() {
                   id="logo-upload" 
                   type="file"
                   accept="image/*"
-                  onChange={(e) => {
+                  onChange={async (e) => {
                     const file = e.target.files?.[0];
                     if (file) {
+                      // Check file size first
+                      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+                        toast({
+                          title: 'File too large',
+                          description: 'Image file is too large. Maximum size is 5MB.',
+                          variant: 'destructive',
+                        });
+                        return;
+                      }
+                      
                       setUploadedLogo(file);
-                      const reader = new FileReader();
-                      reader.onload = (event) => {
-                        if (event.target?.result) {
-                          setUploadedLogoPreview(event.target.result as string);
-                        }
-                      };
-                      reader.readAsDataURL(file);
+                      
+                      try {
+                        // Process and preview the image immediately
+                        const processedImage = await resizeAndCompressImage(file);
+                        setUploadedLogoPreview(processedImage);
+                      } catch (error) {
+                        // If processing fails, still show the original
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
+                          if (event.target?.result) {
+                            setUploadedLogoPreview(event.target.result as string);
+                          }
+                        };
+                        reader.readAsDataURL(file);
+                      }
                     }
                   }}
                 />
