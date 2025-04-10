@@ -1,7 +1,7 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useParams, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { DataTable } from "@/components/admin/DataTable";
+import { SimpleDataTable } from "@/components/admin/SimpleDataTable";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -338,7 +338,7 @@ function TestQuestions() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <DataTable
+                  <SimpleDataTable
                     columns={columns}
                     data={questions || []}
                     searchField="questionText"

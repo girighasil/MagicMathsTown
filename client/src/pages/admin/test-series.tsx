@@ -2,7 +2,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { AdminLayout } from "@/components/admin/AdminLayout";
-import { DataTable } from "@/components/admin/DataTable";
+import { SimpleDataTable } from "@/components/admin/SimpleDataTable";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -263,7 +263,7 @@ function TestSeriesManagement() {
         ) : (
           <Card>
             <CardContent className="pt-6">
-              <DataTable
+              <SimpleDataTable
                 columns={columns}
                 data={testSeries || []}
                 searchField="title"
