@@ -1,9 +1,10 @@
 import { motion } from "framer-motion";
-import { Medal, Clock } from "lucide-react";
+import { Medal, Clock, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
 import type { TestSeries } from "@/types";
 import { useQuery } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
 
 interface TestCardProps {
   test: TestSeries;
@@ -12,17 +13,27 @@ interface TestCardProps {
 
 export default function TestCard({ test, index }: TestCardProps) {
   const [, navigate] = useLocation();
+  const { toast } = useToast();
   
   // Fetch tests in this test series
-  const { data: testsInSeries } = useQuery({
+  const { data: testsInSeries, isLoading } = useQuery({
     queryKey: [`/api/test-series/${test.id}/tests`],
     enabled: !!test.id
   });
   
   const handleStartPracticing = () => {
-    if (testsInSeries && testsInSeries.length > 0) {
+    if (isLoading) return;
+    
+    if (testsInSeries && Array.isArray(testsInSeries) && testsInSeries.length > 0) {
       // Navigate to the first test in the series
       navigate(`/test/${testsInSeries[0].id}`);
+    } else {
+      // No tests available
+      toast({
+        title: "No tests available",
+        description: "This test series doesn't have any tests yet.",
+        variant: "destructive"
+      });
     }
   };
   
@@ -67,8 +78,19 @@ export default function TestCard({ test, index }: TestCardProps) {
         <div>
           <span className="text-lg font-bold text-primary">₹{test.price.toLocaleString()}</span>
         </div>
-        <Button className="px-4 py-2 bg-primary hover:bg-primary/90 text-white">
-          Start Practicing
+        <Button 
+          className="px-4 py-2 bg-primary hover:bg-primary/90 text-white"
+          onClick={handleStartPracticing}
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Loading...
+            </>
+          ) : (
+            "Start Practicing"
+          )}
         </Button>
       </div>
     </motion.div>
