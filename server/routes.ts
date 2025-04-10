@@ -12,7 +12,10 @@ import {
   insertTestSchema,
   insertQuestionSchema,
   insertOptionSchema,
-  insertExplanationSchema
+  insertExplanationSchema,
+  insertTestAttemptSchema,
+  insertUserAnswerSchema,
+  type UserAnswer
 } from "@shared/schema";
 import { setupAuth, isAuthenticated, isAdmin, createInitialAdmin } from "./auth";
 
@@ -778,6 +781,257 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       console.error("Error updating site config:", error);
       res.status(500).json({ message: "Failed to update configuration", error });
+    }
+  });
+
+  // Test Attempts API endpoints
+  // Start a test attempt
+  app.post("/api/tests/:testId/start", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const testId = parseInt(req.params.testId);
+      const userId = req.user!.id; // User is authenticated, so req.user exists
+      
+      // Check if there's already an incomplete attempt for this test by this user
+      const existingAttempts = await storage.getIncompleteTestAttemptsByUserAndTest(userId, testId);
+      if (existingAttempts.length > 0) {
+        return res.status(200).json({ 
+          message: "Test already in progress",
+          testAttempt: existingAttempts[0]
+        });
+      }
+      
+      // Get the test details for total marks
+      const test = await storage.getTest(testId);
+      if (!test) {
+        return res.status(404).json({ message: "Test not found" });
+      }
+      
+      // Start a new test attempt
+      const testAttempt = await storage.createTestAttempt({
+        userId,
+        testId,
+        totalMarks: test.totalMarks,
+        startTime: new Date(),
+        isCompleted: false
+      });
+      
+      res.status(201).json({
+        message: "Test started successfully",
+        testAttempt
+      });
+    } catch (error) {
+      console.error("Error starting test attempt:", error);
+      res.status(500).json({ message: "Failed to start test attempt", error });
+    }
+  });
+  
+  // Submit an answer during a test
+  app.post("/api/test-attempts/:testAttemptId/submit-answer", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const testAttemptId = parseInt(req.params.testAttemptId);
+      const userId = req.user!.id;
+      
+      // Validate request body
+      const { questionId, answer } = req.body;
+      if (!questionId || !answer) {
+        return res.status(400).json({ message: "Question ID and answer are required" });
+      }
+      
+      // Check if the test attempt exists and belongs to the user
+      const testAttempt = await storage.getTestAttempt(testAttemptId);
+      if (!testAttempt) {
+        return res.status(404).json({ message: "Test attempt not found" });
+      }
+      
+      if (testAttempt.userId !== userId) {
+        return res.status(403).json({ message: "Unauthorized access to test attempt" });
+      }
+      
+      if (testAttempt.isCompleted) {
+        return res.status(400).json({ message: "Test is already completed" });
+      }
+      
+      // Get the question details
+      const question = await storage.getQuestion(parseInt(questionId));
+      if (!question) {
+        return res.status(404).json({ message: "Question not found" });
+      }
+      
+      // For MCQ questions, validate and auto-grade
+      let isCorrect = false;
+      let marksObtained = 0;
+      
+      if (question.questionType === "mcq") {
+        // Get the selected option
+        const options = await storage.getOptionsByQuestion(question.id);
+        const selectedOption = options.find(option => option.id === parseInt(answer));
+        
+        if (selectedOption) {
+          isCorrect = selectedOption.isCorrect;
+          marksObtained = isCorrect ? question.marks : -1 * question.marks * parseFloat(testAttempt.test.negativeMarking);
+        }
+      }
+      
+      // Check if there's an existing answer for this question in this attempt
+      const existingAnswer = await storage.getUserAnswerByQuestionAndAttempt(testAttemptId, parseInt(questionId));
+      
+      let userAnswer;
+      if (existingAnswer) {
+        // Update the existing answer
+        userAnswer = await storage.updateUserAnswer(existingAnswer.id, {
+          answer: answer.toString(),
+          isCorrect,
+          marksObtained
+        });
+      } else {
+        // Create a new user answer
+        userAnswer = await storage.createUserAnswer({
+          testAttemptId,
+          questionId: parseInt(questionId),
+          answer: answer.toString(),
+          isCorrect,
+          marksObtained
+        });
+      }
+      
+      res.json({
+        message: "Answer submitted successfully",
+        userAnswer
+      });
+    } catch (error) {
+      console.error("Error submitting answer:", error);
+      res.status(500).json({ message: "Failed to submit answer", error });
+    }
+  });
+  
+  // Complete a test attempt
+  app.post("/api/test-attempts/:testAttemptId/complete", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const testAttemptId = parseInt(req.params.testAttemptId);
+      const userId = req.user!.id;
+      
+      // Check if the test attempt exists and belongs to the user
+      const testAttempt = await storage.getTestAttempt(testAttemptId);
+      if (!testAttempt) {
+        return res.status(404).json({ message: "Test attempt not found" });
+      }
+      
+      if (testAttempt.userId !== userId) {
+        return res.status(403).json({ message: "Unauthorized access to test attempt" });
+      }
+      
+      if (testAttempt.isCompleted) {
+        return res.status(400).json({ message: "Test is already completed" });
+      }
+      
+      // Get all the questions for this test
+      const questions = await storage.getQuestionsByTest(testAttempt.testId);
+      
+      // Get all the answers for this attempt
+      const userAnswers = await storage.getUserAnswersByTestAttempt(testAttemptId);
+      
+      // Calculate results
+      let score = 0;
+      let correctAnswers = 0;
+      let incorrectAnswers = 0;
+      let unanswered = questions.length - userAnswers.length;
+      
+      userAnswers.forEach((answer: UserAnswer) => {
+        if (answer.isCorrect) {
+          correctAnswers++;
+        } else {
+          incorrectAnswers++;
+        }
+        score += parseFloat(answer.marksObtained.toString());
+      });
+      
+      // Calculate percentage
+      const percentage = (score / testAttempt.totalMarks) * 100;
+      
+      // Calculate time taken in seconds
+      const endTime = new Date();
+      const startTime = new Date(testAttempt.startTime);
+      const timeTaken = Math.floor((endTime.getTime() - startTime.getTime()) / 1000);
+      
+      // Update the test attempt
+      const updatedTestAttempt = await storage.updateTestAttempt(testAttemptId, {
+        endTime,
+        score,
+        isCompleted: true,
+        timeTaken,
+        correctAnswers,
+        incorrectAnswers,
+        unanswered,
+        percentage
+      });
+      
+      res.json({
+        message: "Test completed successfully",
+        testAttempt: updatedTestAttempt
+      });
+    } catch (error) {
+      console.error("Error completing test:", error);
+      res.status(500).json({ message: "Failed to complete test", error });
+    }
+  });
+  
+  // Get user's test attempts
+  app.get("/api/users/test-attempts", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = req.user!.id;
+      const testAttempts = await storage.getTestAttemptsByUser(userId);
+      res.json(testAttempts);
+    } catch (error) {
+      console.error("Error getting user test attempts:", error);
+      res.status(500).json({ message: "Failed to get test attempts", error });
+    }
+  });
+  
+  // Get test attempt details
+  app.get("/api/test-attempts/:testAttemptId", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const testAttemptId = parseInt(req.params.testAttemptId);
+      const userId = req.user!.id;
+      
+      // Get the test attempt
+      const testAttempt = await storage.getTestAttempt(testAttemptId);
+      
+      if (!testAttempt) {
+        return res.status(404).json({ message: "Test attempt not found" });
+      }
+      
+      // Check if the test attempt belongs to the user or if the user is an admin
+      if (testAttempt.userId !== userId && req.user!.role !== "admin") {
+        return res.status(403).json({ message: "Unauthorized access to test attempt" });
+      }
+      
+      // Get all user answers for this attempt
+      const userAnswers = await storage.getUserAnswersByTestAttempt(testAttemptId);
+      
+      // Get all questions for this test
+      const questions = await storage.getQuestionsByTest(testAttempt.testId);
+      
+      // Prepare the full data with questions and user answers
+      const fullQuestions = await Promise.all(questions.map(async (question) => {
+        const options = await storage.getOptionsByQuestion(question.id);
+        const explanation = await storage.getExplanationByQuestion(question.id);
+        const answer = userAnswers.find((ans: UserAnswer) => ans.questionId === question.id);
+        
+        return {
+          ...question,
+          options,
+          explanation,
+          userAnswer: answer || null
+        };
+      }));
+      
+      res.json({
+        testAttempt,
+        questions: fullQuestions
+      });
+    } catch (error) {
+      console.error("Error getting test attempt details:", error);
+      res.status(500).json({ message: "Failed to get test attempt details", error });
     }
   });
 

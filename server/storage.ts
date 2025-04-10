@@ -10,7 +10,9 @@ import {
   tests, type Test, type InsertTest,
   questions, type Question, type InsertQuestion,
   options, type Option, type InsertOption,
-  explanations, type Explanation, type InsertExplanation
+  explanations, type Explanation, type InsertExplanation,
+  testAttempts, type TestAttempt, type InsertTestAttempt,
+  userAnswers, type UserAnswer, type InsertUserAnswer
 } from "@shared/schema";
 
 export interface IStorage {
@@ -92,10 +94,26 @@ export interface IStorage {
   getSiteConfig(key: string): Promise<any>;
   getAllSiteConfig(): Promise<Record<string, any>>;
   updateSiteConfig(key: string, value: any): Promise<void>;
+  
+  // Test Attempts
+  createTestAttempt(testAttempt: InsertTestAttempt): Promise<TestAttempt>;
+  getTestAttempt(id: number): Promise<TestAttempt | undefined>;
+  getTestAttemptsByUser(userId: number): Promise<TestAttempt[]>;
+  getIncompleteTestAttemptsByUserAndTest(userId: number, testId: number): Promise<TestAttempt[]>;
+  updateTestAttempt(id: number, testAttemptData: Partial<InsertTestAttempt>): Promise<TestAttempt>;
+  
+  // User Answers
+  createUserAnswer(userAnswer: InsertUserAnswer): Promise<UserAnswer>;
+  getUserAnswersByTestAttempt(testAttemptId: number): Promise<UserAnswer[]>;
+  getUserAnswerByQuestionAndAttempt(testAttemptId: number, questionId: number): Promise<UserAnswer | undefined>;
+  updateUserAnswer(id: number, userAnswerData: Partial<InsertUserAnswer>): Promise<UserAnswer>;
+  
+  // Database Setup
+  setupInitialData(): Promise<void>;
 }
 
 import { db } from "./db";
-import { eq, desc, asc } from "drizzle-orm";
+import { eq, desc, asc, and } from "drizzle-orm";
 import { sql } from "drizzle-orm";
 
 export class DatabaseStorage implements IStorage {
@@ -434,6 +452,116 @@ export class DatabaseStorage implements IStorage {
     }
   }
   
+  // Test Attempts
+  async createTestAttempt(insertTestAttempt: InsertTestAttempt): Promise<TestAttempt> {
+    const [testAttempt] = await db.insert(testAttempts).values(insertTestAttempt).returning();
+    
+    // Fetch the test details to join them with the test attempt
+    if (testAttempt) {
+      const test = await this.getTest(testAttempt.testId);
+      if (test) {
+        (testAttempt as any).test = test;
+      }
+    }
+    
+    return testAttempt;
+  }
+  
+  async getTestAttempt(id: number): Promise<TestAttempt | undefined> {
+    const [testAttempt] = await db.select().from(testAttempts).where(eq(testAttempts.id, id));
+    
+    // Fetch the test details to join them with the test attempt
+    if (testAttempt) {
+      const test = await this.getTest(testAttempt.testId);
+      if (test) {
+        (testAttempt as any).test = test;
+      }
+    }
+    
+    return testAttempt;
+  }
+  
+  async getTestAttemptsByUser(userId: number): Promise<TestAttempt[]> {
+    const attempts = await db.select().from(testAttempts)
+      .where(eq(testAttempts.userId, userId))
+      .orderBy(desc(testAttempts.startTime));
+    
+    // Fetch tests for each attempt
+    for (const attempt of attempts) {
+      const test = await this.getTest(attempt.testId);
+      if (test) {
+        (attempt as any).test = test;
+      }
+    }
+    
+    return attempts;
+  }
+  
+  async getIncompleteTestAttemptsByUserAndTest(userId: number, testId: number): Promise<TestAttempt[]> {
+    const attempts = await db.select().from(testAttempts)
+      .where(and(
+        eq(testAttempts.userId, userId),
+        eq(testAttempts.testId, testId),
+        eq(testAttempts.isCompleted, false)
+      ));
+    
+    // Fetch test for each attempt
+    for (const attempt of attempts) {
+      const test = await this.getTest(attempt.testId);
+      if (test) {
+        (attempt as any).test = test;
+      }
+    }
+    
+    return attempts;
+  }
+  
+  async updateTestAttempt(id: number, testAttemptData: Partial<InsertTestAttempt>): Promise<TestAttempt> {
+    const [testAttempt] = await db
+      .update(testAttempts)
+      .set(testAttemptData)
+      .where(eq(testAttempts.id, id))
+      .returning();
+    
+    // Fetch the test details to join them with the test attempt
+    if (testAttempt) {
+      const test = await this.getTest(testAttempt.testId);
+      if (test) {
+        (testAttempt as any).test = test;
+      }
+    }
+    
+    return testAttempt;
+  }
+  
+  // User Answers
+  async createUserAnswer(insertUserAnswer: InsertUserAnswer): Promise<UserAnswer> {
+    const [userAnswer] = await db.insert(userAnswers).values(insertUserAnswer).returning();
+    return userAnswer;
+  }
+  
+  async getUserAnswersByTestAttempt(testAttemptId: number): Promise<UserAnswer[]> {
+    return await db.select().from(userAnswers).where(eq(userAnswers.testAttemptId, testAttemptId));
+  }
+  
+  async getUserAnswerByQuestionAndAttempt(testAttemptId: number, questionId: number): Promise<UserAnswer | undefined> {
+    const [userAnswer] = await db.select().from(userAnswers)
+      .where(and(
+        eq(userAnswers.testAttemptId, testAttemptId),
+        eq(userAnswers.questionId, questionId)
+      ));
+    return userAnswer;
+  }
+  
+  async updateUserAnswer(id: number, userAnswerData: Partial<InsertUserAnswer>): Promise<UserAnswer> {
+    const [userAnswer] = await db
+      .update(userAnswers)
+      .set(userAnswerData)
+      .where(eq(userAnswers.id, id))
+      .returning();
+    return userAnswer;
+  }
+  
   // Initialize the database with sample data
   async setupInitialData() {
     const courseCount = await db.select({ count: sql`count(*)` }).from(courses);
@@ -544,23 +672,23 @@ export class DatabaseStorage implements IStorage {
       // Create FAQs
       const faqData: InsertFAQ[] = [
         {
-          question: "How do the doubt clearing sessions work?",
-          answer: "You can book a doubt clearing session through our platform by selecting your subject, date, and time slot. Once confirmed, you'll connect with our expert teacher via video call at the scheduled time. You can also upload your doubts beforehand for more efficient resolution. Each session lasts 30-45 minutes.",
+          question: "How are the doubt clearing sessions conducted?",
+          answer: "Our doubt clearing sessions are conducted via live video calls with experienced faculty. You can book a slot in advance according to your preferred time and topic. Sessions are typically 30 minutes long and focused on your specific questions.",
           order: 1
         },
         {
-          question: "Are the practice tests regularly updated?",
-          answer: "Yes, our practice tests are regularly updated to reflect the latest exam patterns and question types. We analyze recent exams and incorporate new question styles to ensure you're always practicing with the most relevant material.",
+          question: "Do you provide recorded lectures for all topics?",
+          answer: "Yes, we offer comprehensive recorded lectures for all mathematics topics covered in competitive exams. These are available 24/7 and can be watched at your own pace. Each video is accompanied by downloadable notes and practice problems.",
           order: 2
         },
         {
-          question: "Can I access the course content on mobile devices?",
-          answer: "Absolutely! Our platform is fully responsive and optimized for mobile devices. You can access all course content, practice tests, and even attend doubt clearing sessions from your smartphone or tablet.",
+          question: "How frequently are the test series updated?",
+          answer: "Our test series are updated annually to reflect the latest exam patterns and question types. Additionally, we introduce new tests throughout the year based on any changes announced by examination authorities.",
           order: 3
         },
         {
-          question: "How long do I have access to the course materials?",
-          answer: "Once enrolled, you'll have access to all course materials until your exam date, plus an additional 3 months. For long-term courses like JEE preparation, this typically means 15-18 months of access.",
+          question: "Can I get a refund if I'm not satisfied with the course?",
+          answer: "Yes, we offer a 7-day money-back guarantee for all our courses. If you're not satisfied with the quality of our content or teaching methodology, you can request a full refund within 7 days of purchase.",
           order: 4
         },
         {
