@@ -194,7 +194,11 @@ function TestSeriesManagement() {
       title: "Title",
       render: (row: any) => (
         <div className="flex items-center gap-2">
-          <div className="max-w-sm truncate font-medium" title={row.title}>
+          <div 
+            className="max-w-sm truncate font-medium cursor-pointer hover:text-primary hover:underline" 
+            title={`View details for ${row.title}`}
+            onClick={() => navigateToTests(row)}
+          >
             {row.title}
           </div>
           {row.isPublished && (

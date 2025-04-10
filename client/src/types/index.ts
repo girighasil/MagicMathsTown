@@ -21,6 +21,7 @@ export interface TestSeries {
   testCount: number;
   price: number;
   features: string[];
+  isPublished?: boolean;
 }
 
 export interface Testimonial {

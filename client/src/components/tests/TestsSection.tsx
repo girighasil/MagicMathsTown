@@ -11,6 +11,9 @@ export default function TestsSection() {
     staleTime: 60000
   });
 
+  // Filter to only show published test series
+  const publishedTestSeries = testSeries?.filter(series => series.isPublished === true) || [];
+
   return (
     <section id="practice-tests" className="py-16 bg-white">
       <div className="container mx-auto px-4">
@@ -34,11 +37,15 @@ export default function TestsSection() {
           <div className="text-center text-red-500 py-10">
             Failed to load test series. Please try again later.
           </div>
-        ) : (
+        ) : publishedTestSeries.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-            {testSeries?.map((test, index) => (
+            {publishedTestSeries.map((test, index) => (
               <TestCard key={test.id} test={test} index={index} />
             ))}
+          </div>
+        ) : (
+          <div className="text-center py-10 text-gray-600">
+            Our test series are currently being prepared. Please check back soon!
           </div>
         )}
         

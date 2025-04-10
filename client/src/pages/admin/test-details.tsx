@@ -348,9 +348,8 @@ function TestDetails() {
   // Mutation to publish/unpublish test series
   const publishTestSeriesMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest("PUT", `/api/admin/test-series/${id}`, {
-        isPublished: !testSeries?.isPublished
-      });
+      const data = { isPublished: !testSeries?.isPublished };
+      return await apiRequest("PUT", `/api/admin/test-series/${id}`, data);
     },
     onSuccess: () => {
       toast({
