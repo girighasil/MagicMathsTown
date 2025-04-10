@@ -97,6 +97,7 @@ export const testSeries = pgTable("test_series", {
   testCount: integer("test_count").notNull(),
   price: integer("price").notNull(),
   features: text("features").array().notNull(),
+  isPublished: boolean("is_published").notNull().default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -107,6 +108,7 @@ export const insertTestSeriesSchema = createInsertSchema(testSeries).pick({
   testCount: true,
   price: true,
   features: true,
+  isPublished: true,
 });
 
 export const tests = pgTable("tests", {
