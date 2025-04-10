@@ -345,9 +345,9 @@ function TestDetails() {
     },
   ];
 
-  // Simple mutation to update test series
+  // Single mutation for all test series updates
   const updateTestSeriesMutation = useMutation({
-    mutationFn: async (data: { isPublished: boolean }) => {
+    mutationFn: async (data: { isPublished?: boolean }) => {
       return await apiRequest("PUT", `/api/admin/test-series/${id}`, data);
     },
     onSuccess: () => {
@@ -367,8 +367,8 @@ function TestDetails() {
     },
   });
 
-  // Handle publish/unpublish as a separate function
-  const handlePublishToggle = () => {
+  // Handle publish/unpublish as a separate function that uses the base mutation
+  const handlePublishToggle = useCallback(() => {
     if (!testSeries) return;
     
     const newPublishStatus = !testSeries.isPublished;
@@ -386,7 +386,7 @@ function TestDetails() {
         }
       }
     );
-  };
+  }, [testSeries, updateTestSeriesMutation, toast]);
 
   return (
     <AdminLayout title="Test Management">
