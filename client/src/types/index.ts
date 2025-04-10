@@ -52,9 +52,11 @@ export interface DoubtSession {
 }
 
 export interface Contact {
+  id: number;
   name: string;
-  email: string;
-  phone?: string;
+  email: string | null;
+  phone: string;
   subject: string;
   message: string;
+  createdAt: string;
 }
