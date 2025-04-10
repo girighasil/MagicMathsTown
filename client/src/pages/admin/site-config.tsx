@@ -19,6 +19,10 @@ export default function SiteConfigManagement() {
   
   // General site settings
   const [siteTitle, setSiteTitle] = useState('');
+  const [tagline, setTagline] = useState('');
+  const [instituteName, setInstituteName] = useState('');
+  const [uploadedLogo, setUploadedLogo] = useState<File | null>(null);
+  const [uploadedLogoPreview, setUploadedLogoPreview] = useState('');
   
   // Hero section content
   const [heroTitle, setHeroTitle] = useState('');
@@ -65,12 +69,13 @@ export default function SiteConfigManagement() {
   const [secondaryColor, setSecondaryColor] = useState('#10B981');
   const [fontMain, setFontMain] = useState('');
   const [fontHeadings, setFontHeadings] = useState('');
-  const [logoUrl, setLogoUrl] = useState('');
   
   useEffect(() => {
     if (config) {
       // Initialize site settings
       setSiteTitle(config.siteTitle || 'Maths Magic Town');
+      setTagline(config.tagline || 'Your Path to Success in Competitive Exams');
+      setInstituteName(config.instituteName || 'Maths Magic Town');
       
       // Initialize hero section
       const hero = config.hero || {};
