@@ -23,9 +23,7 @@ export const insertUserSchema = createInsertSchema(users).pick({
   role: true,
 });
 
-export const usersRelations = relations(users, ({ many }) => ({
-  doubtSessions: many(doubtSessions),
-}));
+// We'll define user relations after testAttempts is defined
 
 export const courses = pgTable("courses", {
   id: serial("id").primaryKey(),
@@ -247,13 +245,7 @@ export type InsertCourse = z.infer<typeof insertCourseSchema>;
 export type DoubtSession = typeof doubtSessions.$inferSelect;
 export type InsertDoubtSession = z.infer<typeof insertDoubtSessionSchema>;
 
-export const testsRelations = relations(tests, ({ one, many }) => ({
-  testSeries: one(testSeries, {
-    fields: [tests.testSeriesId],
-    references: [testSeries.id],
-  }),
-  questions: many(questions),
-}));
+
 
 export const questionsRelations = relations(questions, ({ one, many }) => ({
   test: one(tests, {
@@ -309,6 +301,100 @@ export type InsertContact = z.infer<typeof insertContactSchema>;
 export type FAQ = typeof faqs.$inferSelect;
 export type InsertFAQ = z.infer<typeof insertFaqSchema>;
 
+// Test Attempts - tracks each test session by a user
+export const testAttempts = pgTable("test_attempts", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  testId: integer("test_id").references(() => tests.id, { onDelete: "cascade" }).notNull(),
+  startTime: timestamp("start_time").defaultNow().notNull(),
+  endTime: timestamp("end_time"),
+  score: decimal("score"),
+  totalMarks: integer("total_marks").notNull(),
+  isCompleted: boolean("is_completed").default(false).notNull(),
+  timeTaken: integer("time_taken"), // in seconds
+  correctAnswers: integer("correct_answers"),
+  incorrectAnswers: integer("incorrect_answers"),
+  unanswered: integer("unanswered"),
+  percentage: decimal("percentage"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertTestAttemptSchema = createInsertSchema(testAttempts).pick({
+  userId: true,
+  testId: true,
+  startTime: true,
+  endTime: true,
+  score: true,
+  totalMarks: true,
+  isCompleted: true,
+  timeTaken: true,
+  correctAnswers: true,
+  incorrectAnswers: true,
+  unanswered: true,
+  percentage: true,
+});
+
+// User Answers - stores individual answers for each question in a test attempt
+export const userAnswers = pgTable("user_answers", {
+  id: serial("id").primaryKey(),
+  testAttemptId: integer("test_attempt_id").references(() => testAttempts.id, { onDelete: "cascade" }).notNull(),
+  questionId: integer("question_id").references(() => questions.id, { onDelete: "cascade" }).notNull(),
+  answer: text("answer").notNull(), // Stores the selected option ID for MCQs or text for other question types
+  isCorrect: boolean("is_correct"),
+  marksObtained: decimal("marks_obtained"), // Can be negative in case of negative marking
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertUserAnswerSchema = createInsertSchema(userAnswers).pick({
+  testAttemptId: true,
+  questionId: true,
+  answer: true,
+  isCorrect: true,
+  marksObtained: true,
+});
+
+// Relationships for test attempts
+export const testAttemptsRelations = relations(testAttempts, ({ one, many }) => ({
+  user: one(users, {
+    fields: [testAttempts.userId],
+    references: [users.id],
+  }),
+  test: one(tests, {
+    fields: [testAttempts.testId],
+    references: [tests.id],
+  }),
+  userAnswers: many(userAnswers),
+}));
+
+// Relationships for user answers
+export const userAnswersRelations = relations(userAnswers, ({ one }) => ({
+  testAttempt: one(testAttempts, {
+    fields: [userAnswers.testAttemptId],
+    references: [testAttempts.id],
+  }),
+  question: one(questions, {
+    fields: [userAnswers.questionId],
+    references: [questions.id],
+  }),
+}));
+
+// Complete testsRelations definition
+export const testsRelations = relations(tests, ({ one, many }) => ({
+  testSeries: one(testSeries, {
+    fields: [tests.testSeriesId],
+    references: [testSeries.id],
+  }),
+  questions: many(questions),
+  testAttempts: many(testAttempts),
+}));
+
+// Export types for test attempts and user answers
+export type TestAttempt = typeof testAttempts.$inferSelect;
+export type InsertTestAttempt = z.infer<typeof insertTestAttemptSchema>;
+
+export type UserAnswer = typeof userAnswers.$inferSelect;
+export type InsertUserAnswer = z.infer<typeof insertUserAnswerSchema>;
+
 // Site Configuration Schema
 export const siteConfig = pgTable("site_config", {
   id: serial("id").primaryKey(),
@@ -319,3 +405,9 @@ export const siteConfig = pgTable("site_config", {
 
 export type SiteConfig = typeof siteConfig.$inferSelect;
 export type InsertSiteConfig = typeof siteConfig.$inferInsert;
+
+// Define user relations now that testAttempts is defined
+export const usersRelations = relations(users, ({ many }) => ({
+  doubtSessions: many(doubtSessions),
+  testAttempts: many(testAttempts),
+}));
