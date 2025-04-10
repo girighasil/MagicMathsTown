@@ -33,6 +33,10 @@ export default function Navbar() {
   
   // Default values if config isn't loaded yet
   const siteTitle = config?.siteTitle || 'Maths Magic Town';
+  const instituteName = config?.instituteName || 'Maths Magic Town';
+  const tagline = config?.tagline || 'Your Path to Success in Competitive Exams';
+  const logoUrl = config?.logoUrl || '';
+  const useCustomLogo = config?.useCustomLogo || false;
   const navLinks: NavLink[] = config?.navLinks || [
     { title: 'Home', path: '#home' },
     { title: 'Courses', path: '#courses' },

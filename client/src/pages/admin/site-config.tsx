@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
@@ -22,6 +23,7 @@ export default function SiteConfigManagement() {
   const [tagline, setTagline] = useState('');
   const [instituteName, setInstituteName] = useState('');
   const [logoUrl, setLogoUrl] = useState('');
+  const [useCustomLogo, setUseCustomLogo] = useState(false);
   const [uploadedLogo, setUploadedLogo] = useState<File | null>(null);
   const [uploadedLogoPreview, setUploadedLogoPreview] = useState('');
   
@@ -141,6 +143,7 @@ export default function SiteConfigManagement() {
       setFontMain(theme.fontMain || 'Inter, system-ui, sans-serif');
       setFontHeadings(theme.fontHeadings || 'Poppins, system-ui, sans-serif');
       setLogoUrl(theme.logoUrl || '');
+      setUseCustomLogo(theme.useCustomLogo || false);
       
 
     }
@@ -275,6 +278,11 @@ export default function SiteConfigManagement() {
       // Save logo URL
       await apiRequest('PUT', `/api/admin/site-config/logoUrl`, {
         value: finalLogoUrl
+      });
+      
+      // Save logo display preference
+      await apiRequest('PUT', `/api/admin/site-config/useCustomLogo`, {
+        value: useCustomLogo
       });
       
       toast({
@@ -578,6 +586,15 @@ export default function SiteConfigManagement() {
                 />
               </div>
               
+              <div className="flex items-center space-x-2 my-4">
+                <Switch
+                  id="use-custom-logo"
+                  checked={useCustomLogo}
+                  onCheckedChange={setUseCustomLogo}
+                />
+                <Label htmlFor="use-custom-logo">Use custom logo (instead of default icon)</Label>
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="logo-url">Logo URL</Label>
                 <Input 
@@ -585,8 +602,9 @@ export default function SiteConfigManagement() {
                   value={logoUrl}
                   onChange={(e) => setLogoUrl(e.target.value)}
                   placeholder="URL for your logo image"
+                  disabled={!useCustomLogo}
                 />
-                {logoUrl && (
+                {logoUrl && useCustomLogo && (
                   <div className="mt-2 rounded-md overflow-hidden w-full max-w-md h-20">
                     <img src={logoUrl} alt="Logo preview" className="h-full w-auto object-contain" />
                   </div>
