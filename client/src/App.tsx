@@ -25,6 +25,9 @@ const FaqManagement = lazy(() => import("@/pages/admin/faqs"));
 const PromoManagement = lazy(() => import("@/pages/admin/promotions"));
 const SiteConfigManagement = lazy(() => import("@/pages/admin/site-config"));
 const ContactsManagement = lazy(() => import("@/pages/admin/contacts"));
+const TestSeriesManagement = lazy(() => import("@/pages/admin/test-series"));
+const TestDetails = lazy(() => import("@/pages/admin/test-details"));
+const TestQuestions = lazy(() => import("@/pages/admin/test-questions"));
 
 function Router() {
   return (
@@ -61,6 +64,18 @@ function Router() {
         
         <ProtectedRoute path="/admin/contacts" adminOnly>
           <ContactsManagement />
+        </ProtectedRoute>
+
+        <ProtectedRoute path="/admin/test-series" adminOnly>
+          <TestSeriesManagement />
+        </ProtectedRoute>
+        
+        <ProtectedRoute path="/admin/test-series/:id" adminOnly>
+          <TestDetails />
+        </ProtectedRoute>
+        
+        <ProtectedRoute path="/admin/tests/:id/questions" adminOnly>
+          <TestQuestions />
         </ProtectedRoute>
         
         <Route component={NotFound} />
