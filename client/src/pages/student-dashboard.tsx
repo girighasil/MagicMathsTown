@@ -219,6 +219,11 @@ export default function StudentDashboard() {
     <div className="container mx-auto py-8 px-4">
       <div className="mb-8 flex flex-col md:flex-row justify-between gap-4 items-start md:items-center">
         <div className="flex items-center gap-4">
+          <Avatar className="h-14 w-14 border-2 border-primary">
+            <AvatarFallback className="text-lg font-semibold">
+              {user.fullName ? user.fullName.charAt(0) : user.username.charAt(0)}
+            </AvatarFallback>
+          </Avatar>
           <div>
             <h1 className="text-2xl font-bold text-gray-800">{user.fullName || user.username}'s Dashboard</h1>
             <p className="text-muted-foreground">Track your progress and performance</p>
