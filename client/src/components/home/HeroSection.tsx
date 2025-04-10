@@ -5,7 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function HeroSection() {
   const { config, isLoading } = useSiteConfig();
-
+  
   // Default values if config isn't loaded yet
   const hero = config.hero || {
     title: "Ace Your Math Competitive Exams",
@@ -13,7 +13,7 @@ export default function HeroSection() {
     primaryButtonText: "Explore Courses",
     primaryButtonUrl: "#courses",
     secondaryButtonText: "Try Free Demo",
-    secondaryButtonUrl: "#doubt-classes", // Updated URL for Try Free Demo
+    secondaryButtonUrl: "#",
     backgroundImage: "https://images.unsplash.com/photo-1509062522246-3755977927d7?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
   };
 
@@ -38,10 +38,8 @@ export default function HeroSection() {
               </>
             ) : (
               <>
-                <h1 className="font-bold text-3xl md:text-4xl lg:text-5xl mb-4 text-center"> {/* Added text-center */}
-                  <a href={hero.secondaryButtonUrl} className="hover:text-primary transition-colors"> {/* Added link */}
-                    {hero.title}
-                  </a>
+                <h1 className="font-bold text-3xl md:text-4xl lg:text-5xl mb-4">
+                  {hero.title}
                 </h1>
                 <p className="text-lg mb-8 text-gray-100">
                   {hero.subtitle}
@@ -57,7 +55,7 @@ export default function HeroSection() {
               </>
             )}
           </motion.div>
-
+          
           <motion.div 
             className="md:w-1/2"
             initial={{ opacity: 0, x: 20 }}
