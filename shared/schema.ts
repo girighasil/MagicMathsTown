@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, varchar, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, varchar, jsonb, decimal } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { relations } from "drizzle-orm";
 import { z } from "zod";
@@ -109,6 +109,80 @@ export const insertTestSeriesSchema = createInsertSchema(testSeries).pick({
   features: true,
 });
 
+export const tests = pgTable("tests", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  testSeriesId: integer("test_series_id").references(() => testSeries.id, { onDelete: "cascade" }),
+  duration: integer("duration").notNull(), // in minutes
+  totalMarks: integer("total_marks").notNull(),
+  passingMarks: integer("passing_marks").notNull(),
+  negativeMarking: decimal("negative_marking").notNull(), // factor for negative marking (e.g., 0.25)
+  instructions: text("instructions"),
+  fileUrl: text("file_url"), // URL to the uploaded file (optional)
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertTestSchema = createInsertSchema(tests).pick({
+  title: true,
+  description: true,
+  testSeriesId: true,
+  duration: true,
+  totalMarks: true,
+  passingMarks: true,
+  negativeMarking: true,
+  instructions: true,
+  fileUrl: true,
+  isActive: true,
+});
+
+export const questions = pgTable("questions", {
+  id: serial("id").primaryKey(),
+  testId: integer("test_id").references(() => tests.id, { onDelete: "cascade" }),
+  questionText: text("question_text").notNull(),
+  marks: integer("marks").notNull().default(1),
+  questionType: text("question_type").notNull().default("mcq"), // mcq, multi-select, etc.
+  imageUrl: text("image_url"), // optional image with the question
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertQuestionSchema = createInsertSchema(questions).pick({
+  testId: true,
+  questionText: true,
+  marks: true,
+  questionType: true,
+  imageUrl: true,
+});
+
+export const options = pgTable("options", {
+  id: serial("id").primaryKey(),
+  questionId: integer("question_id").references(() => questions.id, { onDelete: "cascade" }),
+  optionText: text("option_text").notNull(),
+  isCorrect: boolean("is_correct").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertOptionSchema = createInsertSchema(options).pick({
+  questionId: true,
+  optionText: true,
+  isCorrect: true,
+});
+
+export const explanations = pgTable("explanations", {
+  id: serial("id").primaryKey(),
+  questionId: integer("question_id").references(() => questions.id, { onDelete: "cascade" }),
+  explanationText: text("explanation_text").notNull(),
+  imageUrl: text("image_url"), // optional image
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertExplanationSchema = createInsertSchema(explanations).pick({
+  questionId: true,
+  explanationText: true,
+  imageUrl: true,
+});
+
 export const testimonials = pgTable("testimonials", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
@@ -171,8 +245,58 @@ export type InsertCourse = z.infer<typeof insertCourseSchema>;
 export type DoubtSession = typeof doubtSessions.$inferSelect;
 export type InsertDoubtSession = z.infer<typeof insertDoubtSessionSchema>;
 
+export const testsRelations = relations(tests, ({ one, many }) => ({
+  testSeries: one(testSeries, {
+    fields: [tests.testSeriesId],
+    references: [testSeries.id],
+  }),
+  questions: many(questions),
+}));
+
+export const questionsRelations = relations(questions, ({ one, many }) => ({
+  test: one(tests, {
+    fields: [questions.testId],
+    references: [tests.id],
+  }),
+  options: many(options),
+  explanation: one(explanations, {
+    fields: [questions.id],
+    references: [explanations.questionId],
+  }),
+}));
+
+export const optionsRelations = relations(options, ({ one }) => ({
+  question: one(questions, {
+    fields: [options.questionId],
+    references: [questions.id],
+  }),
+}));
+
+export const explanationsRelations = relations(explanations, ({ one }) => ({
+  question: one(questions, {
+    fields: [explanations.questionId],
+    references: [questions.id],
+  }),
+}));
+
+export const testSeriesRelations = relations(testSeries, ({ many }) => ({
+  tests: many(tests),
+}));
+
 export type TestSeries = typeof testSeries.$inferSelect;
 export type InsertTestSeries = z.infer<typeof insertTestSeriesSchema>;
+
+export type Test = typeof tests.$inferSelect;
+export type InsertTest = z.infer<typeof insertTestSchema>;
+
+export type Question = typeof questions.$inferSelect;
+export type InsertQuestion = z.infer<typeof insertQuestionSchema>;
+
+export type Option = typeof options.$inferSelect;
+export type InsertOption = z.infer<typeof insertOptionSchema>;
+
+export type Explanation = typeof explanations.$inferSelect;
+export type InsertExplanation = z.infer<typeof insertExplanationSchema>;
 
 export type Testimonial = typeof testimonials.$inferSelect;
 export type InsertTestimonial = z.infer<typeof insertTestimonialSchema>;

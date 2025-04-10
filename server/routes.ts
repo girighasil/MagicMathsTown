@@ -8,7 +8,11 @@ import {
   insertCourseSchema,
   insertTestSeriesSchema,
   insertTestimonialSchema,
-  insertFaqSchema
+  insertFaqSchema,
+  insertTestSchema,
+  insertQuestionSchema,
+  insertOptionSchema,
+  insertExplanationSchema
 } from "@shared/schema";
 import { setupAuth, isAuthenticated, isAdmin, createInitialAdmin } from "./auth";
 
@@ -245,6 +249,305 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting test series:", error);
       res.status(500).json({ message: "Failed to delete test series", error });
+    }
+  });
+  
+  // Tests Routes
+  app.get("/api/tests", async (req: Request, res: Response) => {
+    try {
+      const tests = await storage.getAllTests();
+      res.json(tests);
+    } catch (error) {
+      console.error("Error getting tests:", error);
+      res.status(500).json({ message: "Failed to get tests", error });
+    }
+  });
+  
+  app.get("/api/test-series/:testSeriesId/tests", async (req: Request, res: Response) => {
+    try {
+      const testSeriesId = parseInt(req.params.testSeriesId);
+      const tests = await storage.getTestsByTestSeries(testSeriesId);
+      res.json(tests);
+    } catch (error) {
+      console.error("Error getting tests by test series:", error);
+      res.status(500).json({ message: "Failed to get tests by test series", error });
+    }
+  });
+  
+  app.get("/api/tests/:id", async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const test = await storage.getTest(id);
+      if (!test) {
+        return res.status(404).json({ message: "Test not found" });
+      }
+      res.json(test);
+    } catch (error) {
+      console.error("Error getting test:", error);
+      res.status(500).json({ message: "Failed to get test", error });
+    }
+  });
+  
+  app.post("/api/admin/tests", isAdmin, async (req: Request, res: Response) => {
+    try {
+      const validatedData = insertTestSchema.parse(req.body);
+      const test = await storage.createTest(validatedData);
+      res.status(201).json({
+        message: "Test created successfully",
+        test
+      });
+    } catch (error) {
+      console.error("Error creating test:", error);
+      res.status(400).json({ message: "Failed to create test", error });
+    }
+  });
+  
+  app.put("/api/admin/tests/:id", isAdmin, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const validatedData = insertTestSchema.partial().parse(req.body);
+      const test = await storage.updateTest(id, validatedData);
+      res.json({
+        message: "Test updated successfully",
+        test
+      });
+    } catch (error) {
+      console.error("Error updating test:", error);
+      res.status(400).json({ message: "Failed to update test", error });
+    }
+  });
+  
+  app.delete("/api/admin/tests/:id", isAdmin, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteTest(id);
+      res.json({ message: "Test deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting test:", error);
+      res.status(500).json({ message: "Failed to delete test", error });
+    }
+  });
+  
+  // Questions Routes
+  app.get("/api/tests/:testId/questions", async (req: Request, res: Response) => {
+    try {
+      const testId = parseInt(req.params.testId);
+      const questions = await storage.getQuestionsByTest(testId);
+      res.json(questions);
+    } catch (error) {
+      console.error("Error getting questions by test:", error);
+      res.status(500).json({ message: "Failed to get questions by test", error });
+    }
+  });
+  
+  app.get("/api/questions/:id", async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const question = await storage.getQuestion(id);
+      if (!question) {
+        return res.status(404).json({ message: "Question not found" });
+      }
+      
+      // Also fetch options and explanation
+      const options = await storage.getOptionsByQuestion(id);
+      const explanation = await storage.getExplanationByQuestion(id);
+      
+      res.json({
+        ...question,
+        options,
+        explanation
+      });
+    } catch (error) {
+      console.error("Error getting question details:", error);
+      res.status(500).json({ message: "Failed to get question details", error });
+    }
+  });
+  
+  app.post("/api/admin/questions", isAdmin, async (req: Request, res: Response) => {
+    try {
+      const validatedData = insertQuestionSchema.parse(req.body);
+      const question = await storage.createQuestion(validatedData);
+      res.status(201).json({
+        message: "Question created successfully",
+        question
+      });
+    } catch (error) {
+      console.error("Error creating question:", error);
+      res.status(400).json({ message: "Failed to create question", error });
+    }
+  });
+  
+  app.put("/api/admin/questions/:id", isAdmin, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const validatedData = insertQuestionSchema.partial().parse(req.body);
+      const question = await storage.updateQuestion(id, validatedData);
+      res.json({
+        message: "Question updated successfully",
+        question
+      });
+    } catch (error) {
+      console.error("Error updating question:", error);
+      res.status(400).json({ message: "Failed to update question", error });
+    }
+  });
+  
+  app.delete("/api/admin/questions/:id", isAdmin, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteQuestion(id);
+      res.json({ message: "Question deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting question:", error);
+      res.status(500).json({ message: "Failed to delete question", error });
+    }
+  });
+  
+  // Options Routes
+  app.post("/api/admin/options", isAdmin, async (req: Request, res: Response) => {
+    try {
+      const validatedData = insertOptionSchema.parse(req.body);
+      const option = await storage.createOption(validatedData);
+      res.status(201).json({
+        message: "Option created successfully",
+        option
+      });
+    } catch (error) {
+      console.error("Error creating option:", error);
+      res.status(400).json({ message: "Failed to create option", error });
+    }
+  });
+  
+  app.put("/api/admin/options/:id", isAdmin, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const validatedData = insertOptionSchema.partial().parse(req.body);
+      const option = await storage.updateOption(id, validatedData);
+      res.json({
+        message: "Option updated successfully",
+        option
+      });
+    } catch (error) {
+      console.error("Error updating option:", error);
+      res.status(400).json({ message: "Failed to update option", error });
+    }
+  });
+  
+  app.delete("/api/admin/options/:id", isAdmin, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteOption(id);
+      res.json({ message: "Option deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting option:", error);
+      res.status(500).json({ message: "Failed to delete option", error });
+    }
+  });
+  
+  // Explanation Routes
+  app.post("/api/admin/explanations", isAdmin, async (req: Request, res: Response) => {
+    try {
+      const validatedData = insertExplanationSchema.parse(req.body);
+      const explanation = await storage.createExplanation(validatedData);
+      res.status(201).json({
+        message: "Explanation created successfully",
+        explanation
+      });
+    } catch (error) {
+      console.error("Error creating explanation:", error);
+      res.status(400).json({ message: "Failed to create explanation", error });
+    }
+  });
+  
+  app.put("/api/admin/explanations/:id", isAdmin, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const validatedData = insertExplanationSchema.partial().parse(req.body);
+      const explanation = await storage.updateExplanation(id, validatedData);
+      res.json({
+        message: "Explanation updated successfully",
+        explanation
+      });
+    } catch (error) {
+      console.error("Error updating explanation:", error);
+      res.status(400).json({ message: "Failed to update explanation", error });
+    }
+  });
+  
+  app.delete("/api/admin/explanations/:id", isAdmin, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteExplanation(id);
+      res.json({ message: "Explanation deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting explanation:", error);
+      res.status(500).json({ message: "Failed to delete explanation", error });
+    }
+  });
+  
+  // Bulk Create/Update Endpoints for Questions with Options and Explanations
+  app.post("/api/admin/questions/bulk", isAdmin, async (req: Request, res: Response) => {
+    try {
+      const { questions } = req.body;
+      const results = [];
+      
+      for (const item of questions) {
+        // Create question
+        const questionData = insertQuestionSchema.parse(item.question);
+        const question = await storage.createQuestion(questionData);
+        
+        // Create options
+        const options = [];
+        for (const optionData of item.options) {
+          const option = await storage.createOption({
+            ...optionData,
+            questionId: question.id
+          });
+          options.push(option);
+        }
+        
+        // Create explanation if provided
+        let explanation = null;
+        if (item.explanation) {
+          explanation = await storage.createExplanation({
+            ...item.explanation,
+            questionId: question.id
+          });
+        }
+        
+        results.push({
+          question,
+          options,
+          explanation
+        });
+      }
+      
+      res.status(201).json({
+        message: "Questions created successfully",
+        results
+      });
+    } catch (error) {
+      console.error("Error creating questions in bulk:", error);
+      res.status(400).json({ message: "Failed to create questions in bulk", error });
+    }
+  });
+  
+  // File Upload for Tests
+  app.post("/api/admin/tests/:id/upload", isAdmin, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      // Here we would handle file upload using multer or other library
+      // For now, we'll just update the fileUrl directly
+      const { fileUrl } = req.body;
+      const test = await storage.updateTest(id, { fileUrl });
+      
+      res.json({
+        message: "Test file uploaded successfully",
+        test
+      });
+    } catch (error) {
+      console.error("Error uploading test file:", error);
+      res.status(500).json({ message: "Failed to upload test file", error });
     }
   });
 
