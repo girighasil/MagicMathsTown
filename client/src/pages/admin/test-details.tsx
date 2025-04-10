@@ -345,17 +345,14 @@ function TestDetails() {
     },
   ];
 
-  // Single mutation for all test series updates
+  // Simple mutation for updating test series publish status
   const updateTestSeriesMutation = useMutation({
-    mutationFn: async (data: { isPublished?: boolean }) => {
+    mutationFn: async (data: { isPublished: boolean }) => {
       return await apiRequest("PUT", `/api/admin/test-series/${id}`, data);
     },
     onSuccess: () => {
-      // Invalidate queries
       queryClient.invalidateQueries({ queryKey: ['/api/test-series'] });
       queryClient.invalidateQueries({ queryKey: ['/api/test-series', parseInt(id)] });
-      
-      // Force refresh of current page data
       queryClient.refetchQueries({ queryKey: ['/api/test-series', parseInt(id)] });
     },
     onError: (error: any) => {
@@ -367,8 +364,8 @@ function TestDetails() {
     },
   });
 
-  // Handle publish/unpublish as a separate function that uses the base mutation
-  const handlePublishToggle = useCallback(() => {
+  // Simple function to handle publish/unpublish
+  const handlePublishToggle = () => {
     if (!testSeries) return;
     
     const newPublishStatus = !testSeries.isPublished;
@@ -386,7 +383,7 @@ function TestDetails() {
         }
       }
     );
-  }, [testSeries, updateTestSeriesMutation, toast]);
+  };
 
   return (
     <AdminLayout title="Test Management">
