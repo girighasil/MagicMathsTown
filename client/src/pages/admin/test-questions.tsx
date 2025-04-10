@@ -87,6 +87,15 @@ function TestQuestions() {
       return response.json();
     },
   });
+  
+  // Query to fetch question details when editing
+  const fetchQuestionDetails = async (questionId: number) => {
+    const response = await fetch(`/api/questions/${questionId}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch question details');
+    }
+    return response.json();
+  };
 
   const form = useForm<QuestionFormValues>({
     resolver: zodResolver(questionSchema),
@@ -214,8 +223,108 @@ function TestQuestions() {
     },
   });
 
+  const updateQuestionMutation = useMutation({
+    mutationFn: async (data: QuestionFormValues) => {
+      if (!selectedQuestion) throw new Error("No question selected for update");
+      
+      // First update the question basic data
+      const questionData = {
+        questionText: data.questionText,
+        marks: data.marks,
+        questionType: data.questionType,
+        imageUrl: data.imageUrl || null,
+      };
+      
+      await apiRequest("PUT", `/api/admin/questions/${selectedQuestion.id}`, questionData);
+      
+      // Handle options based on question type
+      if (data.options && data.options.length > 0 && (data.questionType === "mcq" || data.questionType === "fill-blank")) {
+        // If we have options data from the server
+        if (selectedQuestion.options && selectedQuestion.options.length > 0) {
+          // Update existing options where possible
+          for (let i = 0; i < Math.min(data.options.length, selectedQuestion.options.length); i++) {
+            await apiRequest("PUT", `/api/admin/options/${selectedQuestion.options[i].id}`, {
+              optionText: data.options[i].optionText,
+              isCorrect: data.questionType === "fill-blank" ? true : data.options[i].isCorrect,
+            });
+          }
+          
+          // If we have more options in the form than in the database, create new ones
+          if (data.options.length > selectedQuestion.options.length) {
+            for (let i = selectedQuestion.options.length; i < data.options.length; i++) {
+              await apiRequest("POST", "/api/admin/options", {
+                questionId: selectedQuestion.id,
+                optionText: data.options[i].optionText,
+                isCorrect: data.questionType === "fill-blank" ? true : data.options[i].isCorrect,
+              });
+            }
+          }
+          
+          // If we have fewer options in the form than in database, delete the extras
+          if (data.options.length < selectedQuestion.options.length) {
+            for (let i = data.options.length; i < selectedQuestion.options.length; i++) {
+              await apiRequest("DELETE", `/api/admin/options/${selectedQuestion.options[i].id}`);
+            }
+          }
+        } else {
+          // If no existing options, create new ones
+          const optionPromises = data.options.map(option => 
+            apiRequest("POST", "/api/admin/options", {
+              questionId: selectedQuestion.id,
+              optionText: option.optionText,
+              isCorrect: data.questionType === "fill-blank" ? true : option.isCorrect,
+            })
+          );
+          
+          await Promise.all(optionPromises);
+        }
+      }
+      
+      // Handle explanation update
+      if (data.explanation && data.explanation.explanationText) {
+        if (selectedQuestion.explanation) {
+          // Update existing explanation
+          await apiRequest("PUT", `/api/admin/explanations/${selectedQuestion.explanation.id}`, {
+            explanationText: data.explanation.explanationText,
+            imageUrl: data.explanation.imageUrl || null,
+          });
+        } else {
+          // Create new explanation
+          await apiRequest("POST", "/api/admin/explanations", {
+            questionId: selectedQuestion.id,
+            explanationText: data.explanation.explanationText,
+            imageUrl: data.explanation.imageUrl || null,
+          });
+        }
+      }
+      
+      return { success: true };
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Question updated successfully",
+      });
+      setIsAddModalOpen(false);
+      setSelectedQuestion(null);
+      form.reset();
+      queryClient.invalidateQueries({ queryKey: ['/api/tests', parseInt(id), 'questions'] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: `Failed to update question: ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
+
   const onSubmit = (data: QuestionFormValues) => {
-    createQuestionMutation.mutate(data);
+    if (selectedQuestion) {
+      updateQuestionMutation.mutate(data);
+    } else {
+      createQuestionMutation.mutate(data);
+    }
   };
 
   const handleFileUpload = () => {
@@ -235,6 +344,58 @@ function TestQuestions() {
     setSelectedQuestion(null);
     setQuestionType("mcq"); // Reset to default question type
     setIsAddModalOpen(true);
+  };
+
+  const openEditModal = async (question: any) => {
+    try {
+      // Fetch the full question details including options and explanation
+      const questionDetails = await fetchQuestionDetails(question.id);
+      setSelectedQuestion(questionDetails);
+      
+      // Set the question type for the form state
+      setQuestionType(questionDetails.questionType);
+      
+      // Reset the form with the fetched data
+      form.reset({
+        questionText: questionDetails.questionText,
+        marks: questionDetails.marks,
+        questionType: questionDetails.questionType,
+        imageUrl: questionDetails.imageUrl || "",
+        // Map options if they exist
+        options: questionDetails.options ? 
+          questionDetails.options.map((opt: any) => ({
+            optionText: opt.optionText,
+            isCorrect: opt.isCorrect
+          })) : 
+          // Otherwise provide default options based on question type
+          questionDetails.questionType === 'mcq' ? 
+            [
+              { optionText: "", isCorrect: false },
+              { optionText: "", isCorrect: false },
+              { optionText: "", isCorrect: false },
+              { optionText: "", isCorrect: false },
+            ] : 
+            questionDetails.questionType === 'fill-blank' ? 
+              [{ optionText: "", isCorrect: true }] : 
+              [],
+        // Add explanation if it exists
+        explanation: questionDetails.explanation ? {
+          explanationText: questionDetails.explanation.explanationText,
+          imageUrl: questionDetails.explanation.imageUrl || "",
+        } : {
+          explanationText: "",
+          imageUrl: "",
+        },
+      });
+      
+      setIsAddModalOpen(true);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to load question details for editing",
+        variant: "destructive",
+      });
+    }
   };
 
   const openDeleteModal = (question: any) => {
