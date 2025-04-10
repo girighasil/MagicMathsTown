@@ -7,14 +7,7 @@ import {
 import { getQueryFn, apiRequest, queryClient } from "../lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
-
-type User = {
-  id: number;
-  username: string;
-  email: string;
-  fullName: string;
-  role: string;
-};
+import type { User } from "@/types/user";
 
 type AuthContextType = {
   user: User | null;
