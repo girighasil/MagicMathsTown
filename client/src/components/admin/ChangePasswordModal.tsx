@@ -25,6 +25,8 @@ import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Lock } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
+import { useLocation } from "wouter";
 
 const changePasswordSchema = z
   .object({
@@ -41,6 +43,8 @@ type ChangePasswordFormValues = z.infer<typeof changePasswordSchema>;
 
 export function ChangePasswordModal() {
   const { toast } = useToast();
+  const { logoutMutation } = useAuth();
+  const [, navigate] = useLocation();
   const [open, setOpen] = React.useState(false);
   
   const form = useForm<ChangePasswordFormValues>({
@@ -60,10 +64,19 @@ export function ChangePasswordModal() {
     onSuccess: () => {
       toast({
         title: "Success",
-        description: "Password changed successfully",
+        description: "Password changed successfully. Please log in with your new password.",
       });
       setOpen(false);
       form.reset();
+      
+      // Log out the user and redirect to login page
+      setTimeout(() => {
+        logoutMutation.mutate(undefined, {
+          onSuccess: () => {
+            navigate('/auth');
+          }
+        });
+      }, 1500); // Short delay to allow the user to see the success message
     },
     onError: (error: Error) => {
       toast({
