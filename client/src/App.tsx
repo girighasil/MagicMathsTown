@@ -8,6 +8,7 @@ import TestSession from "@/pages/test-session";
 import TestTakingSession from "@/pages/test-taking-session";
 import TestReport from "@/pages/test-report";
 import TestSeriesDetails from "@/pages/test-series-details";
+import StudentDashboard from "@/pages/student-dashboard";
 import { Suspense, lazy } from "react";
 import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute } from "@/components/common/ProtectedRoute";
@@ -47,6 +48,10 @@ function Router() {
         </ProtectedRoute>
         <ProtectedRoute path="/test-report/:attemptId">
           <TestReport />
+        </ProtectedRoute>
+        
+        <ProtectedRoute path="/dashboard">
+          <StudentDashboard />
         </ProtectedRoute>
         
         {/* Admin routes */}
