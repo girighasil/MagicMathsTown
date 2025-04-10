@@ -884,7 +884,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userAnswer = await storage.updateUserAnswer(existingAnswer.id, {
           answer: answer.toString(),
           isCorrect,
-          marksObtained
+          marksObtained: marksObtained.toString()
         });
       } else {
         // Create a new user answer
@@ -893,7 +893,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           questionId: parseInt(questionId),
           answer: answer.toString(),
           isCorrect,
-          marksObtained
+          marksObtained: marksObtained.toString()
         });
       }
       
@@ -945,7 +945,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } else {
           incorrectAnswers++;
         }
-        score += parseFloat(answer.marksObtained.toString());
+        if (answer.marksObtained) {
+          score += parseFloat(answer.marksObtained.toString());
+        }
       });
       
       // Calculate percentage
@@ -959,13 +961,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Update the test attempt
       const updatedTestAttempt = await storage.updateTestAttempt(testAttemptId, {
         endTime,
-        score,
+        score: score.toString(),
         isCompleted: true,
         timeTaken,
         correctAnswers,
         incorrectAnswers,
         unanswered,
-        percentage
+        percentage: percentage.toString()
       });
       
       res.json({
