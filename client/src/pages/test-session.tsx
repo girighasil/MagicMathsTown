@@ -8,9 +8,8 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
-import { Clock, ArrowRight, ArrowLeft, Save, CheckCircle, AlertCircle } from "lucide-react";
+import { Clock, ArrowRight, ArrowLeft, CheckCircle, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 // Define types for our data
@@ -91,6 +90,37 @@ export default function TestSession() {
     enabled: !!currentQuestionId,
   });
   
+  // Fetch all question details for report
+  const fetchAllQuestionDetails = async () => {
+    if (!questions || questions.length === 0) return;
+    
+    setLoadingReport(true);
+    
+    try {
+      const fetchPromises = questions.map(question => 
+        fetch(`/api/questions/${question.id}`).then(res => res.json())
+      );
+      
+      const results = await Promise.all(fetchPromises);
+      
+      const detailsMap: Record<number, QuestionDetails> = {};
+      results.forEach((result: QuestionDetails) => {
+        detailsMap[result.id] = result;
+      });
+      
+      setAllQuestionDetails(detailsMap);
+    } catch (error) {
+      console.error("Error fetching question details:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load question details for the report.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoadingReport(false);
+    }
+  };
+  
   // Initialize timer when test data loads
   useEffect(() => {
     if (test?.duration) {
@@ -112,6 +142,7 @@ export default function TestSession() {
             variant: "destructive",
           });
           setTestCompleted(true);
+          fetchAllQuestionDetails();
           return 0;
         }
         return prev - 1;
@@ -165,63 +196,10 @@ export default function TestSession() {
     return Math.round((answeredCount / questions.length) * 100);
   };
   
-  if (testLoading || questionsLoading || (currentQuestionId && detailsLoading)) {
-    return (
-      <div className="flex justify-center items-center min-h-screen bg-gray-50">
-        <div className="animate-spin h-12 w-12 border-4 border-primary rounded-full border-t-transparent"></div>
-      </div>
-    );
-  }
-  
-  if (!test || !questions) {
-    return (
-      <div className="flex justify-center items-center min-h-screen bg-gray-50">
-        <div className="text-center p-8">
-          <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">Test Not Found</h1>
-          <p className="text-gray-600 mb-6">The test you're looking for doesn't exist or isn't available.</p>
-          <Button onClick={() => navigate('/')}>Return Home</Button>
-        </div>
-      </div>
-    );
-  }
-  
-  // Fetch all question details for report
-  
-  // Fetch all question details for report
-  const fetchAllQuestionDetails = async () => {
-    if (!questions || questions.length === 0) return;
-    
-    setLoadingReport(true);
-    
-    try {
-      const fetchPromises = questions.map(question => 
-        fetch(`/api/questions/${question.id}`).then(res => res.json())
-      );
-      
-      const results = await Promise.all(fetchPromises);
-      
-      const detailsMap: Record<number, QuestionDetails> = {};
-      results.forEach((result: QuestionDetails) => {
-        detailsMap[result.id] = result;
-      });
-      
-      setAllQuestionDetails(detailsMap);
-    } catch (error) {
-      console.error("Error fetching question details:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load question details for the report.",
-        variant: "destructive"
-      });
-    } finally {
-      setLoadingReport(false);
-    }
-  };
-  
   // Calculate test score
   const calculateScore = () => {
-    if (!questions || Object.keys(allQuestionDetails).length === 0) return { score: 0, total: 0, percentage: 0, correctAnswers: 0 };
+    if (!questions || Object.keys(allQuestionDetails).length === 0) 
+      return { score: 0, total: 0, percentage: 0, correctAnswers: 0 };
     
     let correctAnswers = 0;
     let totalPoints = 0;
@@ -245,16 +223,37 @@ export default function TestSession() {
       }
     });
     
-    const score = correctAnswers * (test.totalMarks / questions.length);
-    const percentage = (score / test.totalMarks) * 100;
+    const score = correctAnswers * (test?.totalMarks || 0) / (questions.length || 1);
+    const percentage = (score / (test?.totalMarks || 1)) * 100;
     
     return {
       score: Math.round(score * 10) / 10, // Round to 1 decimal place
-      total: test.totalMarks,
+      total: test?.totalMarks || 0,
       percentage: Math.round(percentage),
       correctAnswers
     };
   };
+  
+  if (testLoading || questionsLoading || (currentQuestionId && detailsLoading)) {
+    return (
+      <div className="flex justify-center items-center min-h-screen bg-gray-50">
+        <div className="animate-spin h-12 w-12 border-4 border-primary rounded-full border-t-transparent"></div>
+      </div>
+    );
+  }
+  
+  if (!test || !questions) {
+    return (
+      <div className="flex justify-center items-center min-h-screen bg-gray-50">
+        <div className="text-center p-8">
+          <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+          <h1 className="text-2xl font-bold text-gray-800 mb-2">Test Not Found</h1>
+          <p className="text-gray-600 mb-6">The test you're looking for doesn't exist or isn't available.</p>
+          <Button onClick={() => navigate('/')}>Return Home</Button>
+        </div>
+      </div>
+    );
+  }
   
   // Display test completion screen
   if (testCompleted) {
