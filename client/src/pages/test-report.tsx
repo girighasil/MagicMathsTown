@@ -97,6 +97,7 @@ export default function TestReport() {
   const [expandedQuestions, setExpandedQuestions] = useState<number[]>([]);
   
   // Fetch test attempt details
+  // Fetch test attempt details
   const { data, isLoading, error } = useQuery<TestReportData>({
     queryKey: ["/api/test-attempts", attemptId],
     queryFn: async () => {
@@ -107,6 +108,19 @@ export default function TestReport() {
       return await response.json();
     },
     enabled: !!attemptId && !!user,
+  });
+  
+  // Fetch test details to get the testSeriesId
+  const { data: testData } = useQuery<{ testSeriesId: number }>({
+    queryKey: ["/api/tests", data?.testAttempt.testId],
+    queryFn: async () => {
+      const response = await fetch(`/api/tests/${data?.testAttempt.testId}`);
+      if (!response.ok) {
+        throw new Error("Failed to fetch test details");
+      }
+      return await response.json();
+    },
+    enabled: !!data?.testAttempt.testId,
   });
   
   const toggleQuestion = (questionId: number) => {
@@ -173,8 +187,12 @@ export default function TestReport() {
   
   return (
     <div className="container mx-auto py-6 px-4">
-      <Button variant="outline" onClick={() => window.history.back()} className="mb-4">
-        <ArrowLeft className="mr-2 h-4 w-4" /> Back
+      <Button 
+        variant="outline" 
+        onClick={() => testData?.testSeriesId ? navigate(`/test-series/${testData.testSeriesId}`) : window.history.back()} 
+        className="mb-4"
+      >
+        <ArrowLeft className="mr-2 h-4 w-4" /> Back to Test Series
       </Button>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -459,7 +477,7 @@ export default function TestReport() {
           </Tabs>
         </CardContent>
         <CardFooter>
-          <Button onClick={() => window.history.back()}>Go Back</Button>
+          <Button onClick={() => testData?.testSeriesId ? navigate(`/test-series/${testData.testSeriesId}`) : window.history.back()}>Back to Test Series</Button>
         </CardFooter>
       </Card>
     </div>
