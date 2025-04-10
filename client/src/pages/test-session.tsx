@@ -199,7 +199,7 @@ export default function TestSession() {
   // Calculate test score
   const calculateScore = () => {
     if (!questions || Object.keys(allQuestionDetails).length === 0) 
-      return { score: 0, total: 0, percentage: 0, correctAnswers: 0, incorrectAnswers: 0, unansweredCount: 0 };
+      return { score: 0, total: 0, percentage: 0, correctAnswers: 0, incorrectAnswers: 0, unansweredCount: 0, displayScore: "0.00" };
     
     let correctAnswers = 0;
     let incorrectAnswers = 0;
@@ -207,11 +207,9 @@ export default function TestSession() {
     let totalPoints = 0;
     let earnedPoints = 0;
     
-    // Calculate the point value per question
-    const marksPerQuestion = (test?.totalMarks || 0) / (questions.length || 1);
-    
     questions.forEach(question => {
-      totalPoints += question.marks || 0;
+      const questionMarks = question.marks || 0;
+      totalPoints += questionMarks;
       
       // If question is not answered
       if (!answers[question.id]) {
@@ -231,27 +229,33 @@ export default function TestSession() {
       
       if (selectedOption?.isCorrect) {
         correctAnswers += 1;
-        earnedPoints += marksPerQuestion;
+        earnedPoints += questionMarks;
       } else {
         incorrectAnswers += 1;
-        // Apply negative marking if configured
+        // Apply negative marking proportional to question marks
         if (test?.negativeMarking && test.negativeMarking > 0) {
-          earnedPoints -= test.negativeMarking;
+          const negativeMarkForQuestion = test.negativeMarking * questionMarks;
+          earnedPoints -= negativeMarkForQuestion;
         }
       }
     });
     
-    // Ensure score doesn't go below zero
-    const finalScore = Math.max(0, earnedPoints);
-    const percentage = (finalScore / (test?.totalMarks || 1)) * 100;
+    // Calculate percentage based on positive score against total marks
+    // For percentage calculation, we use max(0, earnedPoints) to avoid negative percentages
+    const positiveScore = Math.max(0, earnedPoints);
+    const percentage = (positiveScore / (test?.totalMarks || 1)) * 100;
+    
+    // Format to 2 decimal places
+    const formattedScore = earnedPoints.toFixed(2);
     
     return {
-      score: Math.round(finalScore * 10) / 10, // Round to 1 decimal place
+      score: earnedPoints, // Keep the original score (can be negative)
       total: test?.totalMarks || 0,
       percentage: Math.round(percentage),
       correctAnswers,
       incorrectAnswers,
-      unansweredCount
+      unansweredCount,
+      displayScore: formattedScore // Store formatted score for display
     };
   };
   
@@ -296,7 +300,7 @@ export default function TestSession() {
                   <Card className="bg-primary-50 border-primary/20">
                     <CardContent className="p-4 text-center">
                       <h3 className="text-sm font-medium text-muted-foreground mb-1">Your Score</h3>
-                      <div className="text-2xl font-bold text-primary">{scoreDetails.score} / {scoreDetails.total}</div>
+                      <div className="text-2xl font-bold text-primary">{scoreDetails.displayScore} / {scoreDetails.total}</div>
                     </CardContent>
                   </Card>
                   
@@ -317,8 +321,8 @@ export default function TestSession() {
                   <Card className="bg-primary-50 border-primary/20">
                     <CardContent className="p-4 text-center">
                       <h3 className="text-sm font-medium text-muted-foreground mb-1">Result</h3>
-                      <div className={`text-2xl font-bold ${scoreDetails.score >= test.passingMarks ? 'text-green-600' : 'text-red-600'}`}>
-                        {scoreDetails.score >= test.passingMarks ? 'PASS' : 'FAIL'}
+                      <div className={`text-2xl font-bold ${parseFloat(scoreDetails.displayScore) >= test.passingMarks ? 'text-green-600' : 'text-red-600'}`}>
+                        {parseFloat(scoreDetails.displayScore) >= test.passingMarks ? 'PASS' : 'FAIL'}
                       </div>
                     </CardContent>
                   </Card>
@@ -441,7 +445,7 @@ export default function TestSession() {
               <div className="bg-muted p-4 rounded-lg mb-6">
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-muted-foreground">Your Score</span>
-                  <span className="font-bold">{scoreDetails.score} / {scoreDetails.total}</span>
+                  <span className="font-bold">{scoreDetails.displayScore} / {scoreDetails.total}</span>
                 </div>
                 <Progress value={scoreDetails.percentage} className="h-2 mb-2" />
                 <div className="text-right text-sm text-muted-foreground">
@@ -467,7 +471,7 @@ export default function TestSession() {
                 
                 {test?.negativeMarking && test.negativeMarking > 0 && (
                   <div className="mt-3 p-2 bg-blue-50 rounded text-sm">
-                    <span className="font-medium">Note:</span> Negative marking of {test.negativeMarking} marks per incorrect answer has been applied.
+                    <span className="font-medium">Note:</span> Negative marking of {test.negativeMarking} × question marks has been applied for each incorrect answer.
                   </div>
                 )}
               </div>
@@ -664,7 +668,7 @@ export default function TestSession() {
                   {test?.negativeMarking && test.negativeMarking > 0 && (
                     <>
                       <div className="font-medium">Negative Marking:</div>
-                      <div>{test.negativeMarking} marks</div>
+                      <div>{test.negativeMarking} × question marks</div>
                     </>
                   )}
                 </div>
