@@ -497,7 +497,7 @@ function TestQuestions() {
 
         {/* Add Question Modal */}
         <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
-          <DialogContent className="sm:max-w-[700px]">
+          <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Add New Question</DialogTitle>
             </DialogHeader>
@@ -517,7 +517,7 @@ function TestQuestions() {
                   )}
                 />
                 
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   <FormField
                     control={form.control}
                     name="marks"
@@ -593,8 +593,8 @@ function TestQuestions() {
                     </div>
                     
                     {fields.map((field, index) => (
-                      <div key={field.id} className="flex gap-2 items-start">
-                        <div className="flex-grow space-y-2">
+                      <div key={field.id} className="flex flex-col sm:flex-row gap-2 items-start border rounded-md p-3">
+                        <div className="flex-grow space-y-2 w-full">
                           <FormField
                             control={form.control}
                             name={`options.${index}.optionText`}
@@ -609,7 +609,7 @@ function TestQuestions() {
                           />
                         </div>
                         
-                        <div className="flex items-center space-x-2 mt-2">
+                        <div className="flex items-center space-x-2 mt-2 justify-between w-full sm:w-auto">
                           <FormField
                             control={form.control}
                             name={`options.${index}.isCorrect`}
@@ -664,8 +664,8 @@ function TestQuestions() {
                     </p>
                     
                     {fields.map((field, index) => (
-                      <div key={field.id} className="flex gap-2 items-start">
-                        <div className="flex-grow space-y-2">
+                      <div key={field.id} className="flex flex-col sm:flex-row gap-2 items-start border rounded-md p-3">
+                        <div className="flex-grow space-y-2 w-full">
                           <FormField
                             control={form.control}
                             name={`options.${index}.optionText`}
@@ -689,15 +689,17 @@ function TestQuestions() {
                           )}
                         />
                         
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => removeOption(index)}
-                          disabled={fields.length <= 1}
-                        >
-                          <MinusCircle className="h-4 w-4 text-muted-foreground" />
-                        </Button>
+                        <div className="flex justify-end w-full sm:w-auto mt-2 sm:mt-0">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => removeOption(index)}
+                            disabled={fields.length <= 1}
+                          >
+                            <MinusCircle className="h-4 w-4 text-muted-foreground" />
+                          </Button>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -749,13 +751,19 @@ function TestQuestions() {
                   />
                 </div>
                 
-                <DialogFooter>
-                  <Button type="button" variant="outline" onClick={() => setIsAddModalOpen(false)}>
+                <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:gap-0">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => setIsAddModalOpen(false)}
+                    className="w-full sm:w-auto"
+                  >
                     Cancel
                   </Button>
                   <Button 
                     type="submit" 
                     disabled={createQuestionMutation.isPending}
+                    className="w-full sm:w-auto"
                   >
                     {createQuestionMutation.isPending && (
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -777,14 +785,19 @@ function TestQuestions() {
             <p>
               Are you sure you want to delete this question? This action cannot be undone.
             </p>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsDeleteModalOpen(false)}>
+            <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:gap-0">
+              <Button 
+                variant="outline" 
+                onClick={() => setIsDeleteModalOpen(false)}
+                className="w-full sm:w-auto"
+              >
                 Cancel
               </Button>
               <Button
                 variant="destructive"
                 onClick={handleDeleteConfirm}
                 disabled={deleteQuestionMutation.isPending}
+                className="w-full sm:w-auto"
               >
                 {deleteQuestionMutation.isPending && (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
