@@ -64,7 +64,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         title: "Login successful",
         description: data.message,
       });
-      setLocation("/admin");
+      
+      // Redirect based on user role
+      if (data.user.role === 'admin') {
+        setLocation("/admin");
+      } else {
+        setLocation("/student-dashboard");
+      }
     },
     onError: (error: Error) => {
       toast({
@@ -89,7 +95,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         title: "Registration successful",
         description: data.message,
       });
-      setLocation("/admin");
+      
+      // Redirect based on user role
+      if (data.user.role === 'admin') {
+        setLocation("/admin");
+      } else {
+        setLocation("/student-dashboard");
+      }
     },
     onError: (error: Error) => {
       toast({

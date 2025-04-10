@@ -29,14 +29,9 @@ export function ProtectedRoute({ path, children, adminOnly = false }: ProtectedR
   }
 
   if (adminOnly && user.role !== "admin") {
-    return (
-      <Route path={path}>
-        <div className="flex flex-col items-center justify-center min-h-screen">
-          <h1 className="text-2xl font-bold mb-4">Access Denied</h1>
-          <p className="text-muted-foreground">You do not have permission to access this page.</p>
-        </div>
-      </Route>
-    );
+    // Redirect students trying to access admin pages to student dashboard
+    setLocation("/student-dashboard");
+    return null;
   }
 
   return <Route path={path}>{children}</Route>;
