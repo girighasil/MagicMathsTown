@@ -199,15 +199,25 @@ export default function TestSession() {
   // Calculate test score
   const calculateScore = () => {
     if (!questions || Object.keys(allQuestionDetails).length === 0) 
-      return { score: 0, total: 0, percentage: 0, correctAnswers: 0 };
+      return { score: 0, total: 0, percentage: 0, correctAnswers: 0, incorrectAnswers: 0, unansweredCount: 0 };
     
     let correctAnswers = 0;
+    let incorrectAnswers = 0;
+    let unansweredCount = 0;
     let totalPoints = 0;
+    let earnedPoints = 0;
+    
+    // Calculate the point value per question
+    const marksPerQuestion = (test?.totalMarks || 0) / (questions.length || 1);
     
     questions.forEach(question => {
       totalPoints += question.marks || 0;
       
-      if (!answers[question.id]) return; // Skip unanswered questions
+      // If question is not answered
+      if (!answers[question.id]) {
+        unansweredCount++;
+        return;
+      }
       
       const questionDetails = allQuestionDetails[question.id];
       if (!questionDetails || !questionDetails.options) return;
@@ -218,19 +228,30 @@ export default function TestSession() {
       
       // Find if the selected answer is correct
       const selectedOption = questionOptions.find(opt => opt.id === selectedOptionId);
+      
       if (selectedOption?.isCorrect) {
         correctAnswers += 1;
+        earnedPoints += marksPerQuestion;
+      } else {
+        incorrectAnswers += 1;
+        // Apply negative marking if configured
+        if (test?.negativeMarking && test.negativeMarking > 0) {
+          earnedPoints -= test.negativeMarking;
+        }
       }
     });
     
-    const score = correctAnswers * (test?.totalMarks || 0) / (questions.length || 1);
-    const percentage = (score / (test?.totalMarks || 1)) * 100;
+    // Ensure score doesn't go below zero
+    const finalScore = Math.max(0, earnedPoints);
+    const percentage = (finalScore / (test?.totalMarks || 1)) * 100;
     
     return {
-      score: Math.round(score * 10) / 10, // Round to 1 decimal place
+      score: Math.round(finalScore * 10) / 10, // Round to 1 decimal place
       total: test?.totalMarks || 0,
       percentage: Math.round(percentage),
-      correctAnswers
+      correctAnswers,
+      incorrectAnswers,
+      unansweredCount
     };
   };
   
@@ -426,6 +447,29 @@ export default function TestSession() {
                 <div className="text-right text-sm text-muted-foreground">
                   {scoreDetails.percentage}% • {scoreDetails.correctAnswers} of {questions.length} correct
                 </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mt-4 text-sm">
+                  <div className="flex justify-between bg-green-50 p-2 rounded">
+                    <span>Correct Answers:</span>
+                    <span className="font-medium">{scoreDetails.correctAnswers}</span>
+                  </div>
+                  
+                  <div className="flex justify-between bg-red-50 p-2 rounded">
+                    <span>Incorrect Answers:</span>
+                    <span className="font-medium">{scoreDetails.incorrectAnswers}</span>
+                  </div>
+                  
+                  <div className="flex justify-between bg-yellow-50 p-2 rounded">
+                    <span>Unanswered:</span>
+                    <span className="font-medium">{scoreDetails.unansweredCount}</span>
+                  </div>
+                </div>
+                
+                {test?.negativeMarking && test.negativeMarking > 0 && (
+                  <div className="mt-3 p-2 bg-blue-50 rounded text-sm">
+                    <span className="font-medium">Note:</span> Negative marking of {test.negativeMarking} marks per incorrect answer has been applied.
+                  </div>
+                )}
               </div>
               
               <div className="flex flex-col items-center space-y-4">
@@ -617,7 +661,7 @@ export default function TestSession() {
                   <div className="font-medium">Time Limit:</div>
                   <div>{test.duration} minutes</div>
                   
-                  {test.negativeMarking > 0 && (
+                  {test?.negativeMarking && test.negativeMarking > 0 && (
                     <>
                       <div className="font-medium">Negative Marking:</div>
                       <div>{test.negativeMarking} marks</div>
