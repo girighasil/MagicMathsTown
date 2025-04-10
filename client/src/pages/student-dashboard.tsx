@@ -16,15 +16,33 @@ import {
   BrainCircuit,
   Home,
   LogOut,
-  UserCog
+  UserCog,
+  User
 } from 'lucide-react';
-import { EditProfileModal } from '@/components/EditProfileModal';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { EditProfileForm } from '@/components/EditProfileForm';
 
 // Types for the TestAttempt
 interface TestAttempt {
@@ -201,45 +219,86 @@ export default function StudentDashboard() {
     <div className="container mx-auto py-8 px-4">
       <div className="mb-8 flex flex-col md:flex-row justify-between gap-4 items-start md:items-center">
         <div className="flex items-center gap-4">
-          <Avatar className="h-16 w-16 border-2 border-primary">
-            <AvatarFallback className="text-lg font-semibold">
-              {user.fullName ? user.fullName.charAt(0) : user.username.charAt(0)}
-            </AvatarFallback>
-          </Avatar>
           <div>
             <h1 className="text-2xl font-bold text-gray-800">{user.fullName || user.username}'s Dashboard</h1>
             <p className="text-muted-foreground">Track your progress and performance</p>
           </div>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <EditProfileModal />
-          
-          <Button variant="outline" size="sm" className="gap-2" onClick={() => navigate('/')}>
-            <Home className="h-4 w-4" />
-            Homepage
-          </Button>
-          
+        
+        <div className="flex items-center gap-3">
           <Button variant="outline" size="sm" className="gap-2" onClick={() => navigate('/test-series')}>
             <BookOpen className="h-4 w-4" />
             Test Series
           </Button>
           
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="gap-2 text-red-500 hover:text-red-700 hover:bg-red-50"
-            onClick={handleLogout}
-            disabled={logoutMutation.isPending}
-          >
-            {logoutMutation.isPending ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <LogOut className="h-4 w-4" />
-            )}
-            Logout
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="relative h-12 w-12 rounded-full">
+                <Avatar className="h-10 w-10 border-2 border-primary">
+                  <AvatarFallback className="text-lg font-semibold">
+                    {user.fullName ? user.fullName.charAt(0) : user.username.charAt(0)}
+                  </AvatarFallback>
+                </Avatar>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56" align="end" forceMount>
+              <DropdownMenuLabel className="font-normal">
+                <div className="flex flex-col space-y-1">
+                  <p className="text-sm font-medium leading-none">{user.fullName || user.username}</p>
+                  <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
+                </div>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuGroup>
+                <DialogTrigger asChild>
+                  <DropdownMenuItem>
+                    <User className="mr-2 h-4 w-4" />
+                    <span>Edit Profile</span>
+                  </DropdownMenuItem>
+                </DialogTrigger>
+                <DropdownMenuItem onClick={() => navigate('/')}>
+                  <Home className="mr-2 h-4 w-4" />
+                  <span>Homepage</span>
+                </DropdownMenuItem>
+              </DropdownMenuGroup>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem 
+                className="text-red-500 focus:text-red-500"
+                onClick={handleLogout}
+                disabled={logoutMutation.isPending}
+              >
+                {logoutMutation.isPending ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <LogOut className="mr-2 h-4 w-4" />
+                )}
+                <span>Log out</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
+      
+      <Dialog>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Edit Profile</DialogTitle>
+            <DialogDescription>
+              Update your profile information.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="flex justify-center my-4">
+            <Avatar className="h-20 w-20 border-2 border-primary">
+              <AvatarFallback className="text-xl font-semibold">
+                {user.fullName ? user.fullName.charAt(0) : user.username.charAt(0)}
+              </AvatarFallback>
+            </Avatar>
+          </div>
+          
+          <EditProfileForm />
+        </DialogContent>
+      </Dialog>
       
       {/* Stats Overview */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
