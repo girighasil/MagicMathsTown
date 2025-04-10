@@ -19,6 +19,7 @@ declare global {
       fullName: string;
       role: string;
       phone: string | null;
+      photoUrl?: string | null;
       createdAt: Date;
     }
   }
@@ -126,7 +127,8 @@ export function setupAuth(app: Express) {
           email: req.user!.email,
           fullName: req.user!.fullName,
           role: req.user!.role,
-          phone: req.user!.phone
+          phone: req.user!.phone,
+          photoUrl: req.user!.photoUrl
         }
       });
     } else {

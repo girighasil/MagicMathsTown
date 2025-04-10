@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useQuery } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
@@ -6,7 +6,6 @@ import {
   Loader2, 
   Medal, 
   BarChart3, 
-  Clock, 
   Calendar, 
   CheckCircle2, 
   XCircle,
@@ -16,7 +15,6 @@ import {
   BrainCircuit,
   Home,
   LogOut,
-  UserCog,
   User,
   Upload,
   Camera
@@ -75,7 +73,12 @@ interface TestAttempt {
 }
 
 // Component for statistics cards
-const StatCard = ({ title, value, icon, description }: { title: string; value: string | number; icon: React.ReactNode; description?: string }) => (
+const StatCard = ({ title, value, icon, description }: { 
+  title: string; 
+  value: string | number; 
+  icon: React.ReactNode; 
+  description?: string 
+}) => (
   <Card className="col-span-1">
     <CardHeader className="flex flex-row items-center justify-between pb-2">
       <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
@@ -185,8 +188,6 @@ export default function StudentDashboard() {
     : [];
   
   // Top subjects/categories
-  // In a real application, we would calculate this from the test data
-  // For now, we'll just show placeholder data
   const topSubjects = [
     { name: "Algebra", progress: 85 },
     { name: "Calculus", progress: 72 },
@@ -215,7 +216,7 @@ export default function StudentDashboard() {
   if (!user) {
     navigate('/auth');
     return null;
-  };
+  }
 
   return (
     <div className="container mx-auto py-8 px-4">
@@ -225,9 +226,13 @@ export default function StudentDashboard() {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-14 w-14 rounded-full p-0">
                 <Avatar className="h-14 w-14 border-2 border-primary cursor-pointer">
-                  <AvatarFallback className="text-lg font-semibold">
-                    {user.fullName ? user.fullName.charAt(0) : user.username.charAt(0)}
-                  </AvatarFallback>
+                  {user?.photoUrl ? (
+                    <AvatarImage src={user.photoUrl} alt={user.fullName || user.username} />
+                  ) : (
+                    <AvatarFallback className="text-lg font-semibold">
+                      {user.fullName ? user.fullName.charAt(0) : user.username.charAt(0)}
+                    </AvatarFallback>
+                  )}
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
@@ -276,40 +281,6 @@ export default function StudentDashboard() {
             Test Series
           </Button>
         </div>
-            <DropdownMenuContent className="w-56" align="end" forceMount>
-              <DropdownMenuLabel className="font-normal">
-                <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">{user.fullName || user.username}</p>
-                  <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
-                </div>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuGroup>
-                <DropdownMenuItem onClick={() => document.getElementById('edit-profile-dialog-trigger')?.click()}>
-                  <User className="mr-2 h-4 w-4" />
-                  <span>Edit Profile</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate('/')}>
-                  <Home className="mr-2 h-4 w-4" />
-                  <span>Homepage</span>
-                </DropdownMenuItem>
-              </DropdownMenuGroup>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem 
-                className="text-red-500 focus:text-red-500"
-                onClick={handleLogout}
-                disabled={logoutMutation.isPending}
-              >
-                {logoutMutation.isPending ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <LogOut className="mr-2 h-4 w-4" />
-                )}
-                <span>Log out</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
       </div>
       
       <Dialog>
@@ -318,16 +289,26 @@ export default function StudentDashboard() {
           <DialogHeader>
             <DialogTitle>Edit Profile</DialogTitle>
             <DialogDescription>
-              Update your profile information.
+              Update your profile information and photo.
             </DialogDescription>
           </DialogHeader>
           
-          <div className="flex justify-center my-4">
-            <Avatar className="h-20 w-20 border-2 border-primary">
-              <AvatarFallback className="text-xl font-semibold">
-                {user.fullName ? user.fullName.charAt(0) : user.username.charAt(0)}
-              </AvatarFallback>
-            </Avatar>
+          <div className="flex flex-col items-center justify-center my-4">
+            <div className="relative group">
+              <Avatar className="h-24 w-24 border-2 border-primary">
+                {user.photoUrl ? (
+                  <AvatarImage src={user.photoUrl} alt={user.fullName || user.username} />
+                ) : (
+                  <AvatarFallback className="text-2xl font-semibold">
+                    {user.fullName ? user.fullName.charAt(0) : user.username.charAt(0)}
+                  </AvatarFallback>
+                )}
+              </Avatar>
+              <div className="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity cursor-pointer">
+                <Camera className="h-6 w-6 text-white" />
+              </div>
+            </div>
+            <p className="text-sm text-muted-foreground mt-2">Click to upload photo</p>
           </div>
           
           <EditProfileForm />

@@ -8,7 +8,7 @@ import TestSession from "@/pages/test-session";
 import TestTakingSession from "@/pages/test-taking-session";
 import TestReport from "@/pages/test-report";
 import TestSeriesDetails from "@/pages/test-series-details";
-import StudentDashboard from "@/pages/student-dashboard";
+import StudentDashboard from "@/pages/student-dashboard-new";
 import TestSeriesPage from "@/pages/test-series";
 import { Suspense, lazy } from "react";
 import { AuthProvider } from "@/hooks/use-auth";
