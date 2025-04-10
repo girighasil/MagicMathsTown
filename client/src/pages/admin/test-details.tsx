@@ -486,7 +486,7 @@ function TestDetails() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {allTests && allTests.filter(test => !test.testSeriesId || test.testSeriesId !== parseInt(id)).length > 0 ? (
+                {allTests && allTests.filter((test: any) => !test.testSeriesId || test.testSeriesId !== parseInt(id)).length > 0 ? (
                   <div className="space-y-4">
                     <Table>
                       <TableHeader>
@@ -500,8 +500,8 @@ function TestDetails() {
                       </TableHeader>
                       <TableBody>
                         {allTests
-                          .filter(test => !test.testSeriesId || test.testSeriesId !== parseInt(id))
-                          .map((test) => (
+                          .filter((test: any) => !test.testSeriesId || test.testSeriesId !== parseInt(id))
+                          .map((test: any) => (
                             <TableRow key={test.id}>
                               <TableCell>{test.title}</TableCell>
                               <TableCell>{test.duration} mins</TableCell>

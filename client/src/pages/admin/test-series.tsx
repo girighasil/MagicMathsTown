@@ -62,7 +62,7 @@ function TestSeriesManagement() {
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
-    name: "features",
+    name: "features" as any, // Type assertion to fix incompatible types
   });
 
   const createTestSeriesMutation = useMutation({
