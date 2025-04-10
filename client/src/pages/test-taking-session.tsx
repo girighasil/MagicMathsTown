@@ -356,7 +356,7 @@ export default function TestTakingSession() {
                 </Button>
               ) : (
                 <Button 
-                  variant="primary"
+                  variant="default"
                   onClick={handleCompleteTest}
                   disabled={completeTestMutation.isPending}
                 >

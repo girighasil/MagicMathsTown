@@ -223,7 +223,7 @@ export default function TestReport() {
             <CardTitle className="flex justify-between items-center">
               <span>Your Score</span>
               {hasPassed ? (
-                <Badge variant="success" className="ml-2">
+                <Badge variant="outline" className="ml-2 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
                   <Medal className="h-3 w-3 mr-1" /> Passed
                 </Badge>
               ) : (
@@ -237,10 +237,12 @@ export default function TestReport() {
             <div className="text-4xl font-bold mb-2">
               {testAttempt.score !== null ? parseFloat(testAttempt.score).toFixed(2) : "0"} / {testAttempt.totalMarks}
             </div>
-            <Progress 
-              value={testAttempt.percentage !== null ? parseFloat(testAttempt.percentage) : 0} 
-              className="h-2 w-full mb-4" 
-            />
+            <div className="w-full bg-muted h-2 rounded-full overflow-hidden mb-4">
+              <div 
+                className="bg-primary h-full rounded-full" 
+                style={{ width: `${testAttempt.percentage !== null ? parseFloat(testAttempt.percentage) : 0}%` }}
+              ></div>
+            </div>
             <div className="text-lg">
               {testAttempt.percentage !== null ? parseFloat(testAttempt.percentage).toFixed(2) : "0"}%
             </div>
@@ -287,7 +289,12 @@ export default function TestReport() {
                 </span>
                 <span className="text-sm">{correctPercentage.toFixed(1)}%</span>
               </div>
-              <Progress value={correctPercentage} className="h-2 bg-muted" indicatorClassName="bg-green-600" />
+              <div className="w-full bg-muted h-2 rounded-full overflow-hidden">
+                <div 
+                  className="bg-green-600 h-full rounded-full" 
+                  style={{ width: `${correctPercentage}%` }}
+                ></div>
+              </div>
             </div>
             
             <div>
@@ -298,7 +305,12 @@ export default function TestReport() {
                 </span>
                 <span className="text-sm">{incorrectPercentage.toFixed(1)}%</span>
               </div>
-              <Progress value={incorrectPercentage} className="h-2 bg-muted" indicatorClassName="bg-red-600" />
+              <div className="w-full bg-muted h-2 rounded-full overflow-hidden">
+                <div 
+                  className="bg-red-600 h-full rounded-full" 
+                  style={{ width: `${incorrectPercentage}%` }}
+                ></div>
+              </div>
             </div>
             
             <div>
@@ -309,7 +321,12 @@ export default function TestReport() {
                 </span>
                 <span className="text-sm">{unansweredPercentage.toFixed(1)}%</span>
               </div>
-              <Progress value={unansweredPercentage} className="h-2 bg-muted" indicatorClassName="bg-gray-400" />
+              <div className="w-full bg-muted h-2 rounded-full overflow-hidden">
+                <div 
+                  className="bg-gray-400 h-full rounded-full" 
+                  style={{ width: `${unansweredPercentage}%` }}
+                ></div>
+              </div>
             </div>
           </div>
         </CardContent>

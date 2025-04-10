@@ -868,7 +868,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         if (selectedOption) {
           isCorrect = selectedOption.isCorrect;
-          marksObtained = isCorrect ? question.marks : -1 * question.marks * parseFloat(testAttempt.test.negativeMarking);
+          const test = await storage.getTest(testAttempt.testId);
+          if (test) {
+            marksObtained = isCorrect ? question.marks : -1 * question.marks * parseFloat(test.negativeMarking);
+          }
         }
       }
       
