@@ -26,7 +26,7 @@ const PromoManagement = lazy(() => import("@/pages/admin/promotions"));
 const SiteConfigManagement = lazy(() => import("@/pages/admin/site-config"));
 const ContactsManagement = lazy(() => import("@/pages/admin/contacts"));
 const TestSeriesManagement = lazy(() => import("@/pages/admin/test-series"));
-const TestDetails = lazy(() => import("@/pages/admin/test-details"));
+const TestDetails = lazy(() => import("@/pages/admin/test-details-new"));
 const TestQuestions = lazy(() => import("@/pages/admin/test-questions"));
 
 function Router() {
