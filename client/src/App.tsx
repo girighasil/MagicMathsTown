@@ -9,6 +9,7 @@ import TestTakingSession from "@/pages/test-taking-session";
 import TestReport from "@/pages/test-report";
 import TestSeriesDetails from "@/pages/test-series-details";
 import StudentDashboard from "@/pages/student-dashboard";
+import TestSeriesPage from "@/pages/test-series";
 import { Suspense, lazy } from "react";
 import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute } from "@/components/common/ProtectedRoute";
@@ -42,6 +43,7 @@ function Router() {
         <Route path="/auth" component={AuthPage} />
         <Route path="/login" component={LoginPage} />
         <Route path="/test/:id" component={TestSession} />
+        <Route path="/test-series" component={TestSeriesPage} />
         <Route path="/test-series/:id" component={TestSeriesDetails} />
         <ProtectedRoute path="/test-taking/:testId">
           <TestTakingSession />

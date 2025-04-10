@@ -204,7 +204,7 @@ export default function StudentDashboard() {
         </div>
         <Button onClick={() => navigate('/test-series')}>
           <BookOpen className="mr-2 h-4 w-4" />
-          Browse Test Series
+          Browse All Test Series
         </Button>
       </div>
       
@@ -266,7 +266,7 @@ export default function StudentDashboard() {
                       className="mt-4" 
                       onClick={() => navigate('/test-series')}
                     >
-                      Browse Tests
+                      Browse Available Tests
                     </Button>
                   </div>
                 )}
