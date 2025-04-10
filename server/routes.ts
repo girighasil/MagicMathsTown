@@ -114,8 +114,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.post("/api/contact", async (req: Request, res: Response) => {
     try {
+      // Process the request body - convert empty email to null
+      const contactData = {
+        ...req.body,
+        email: req.body.email || null
+      };
+      
       // Validate request body
-      const validatedData = insertContactSchema.parse(req.body);
+      const validatedData = insertContactSchema.parse(contactData);
       
       // Create contact message
       const contact = await storage.createContact(validatedData);

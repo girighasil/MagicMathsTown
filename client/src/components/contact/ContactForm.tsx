@@ -13,7 +13,7 @@ import { CONTACT_SUBJECTS } from "@/lib/constants";
 
 const contactFormSchema = z.object({
   name: z.string().min(2, "Name is required"),
-  email: z.string().email("Please enter a valid email").optional(),
+  email: z.string().email("Please enter a valid email").optional().or(z.literal('')),
   phone: z.string().min(5, "Phone number is required"),
   subject: z.string().min(1, "Please select a subject"),
   message: z.string().min(10, "Message must be at least 10 characters"),
