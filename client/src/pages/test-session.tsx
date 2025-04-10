@@ -480,8 +480,8 @@ export default function TestSession() {
                 <Button className="min-w-[200px]" onClick={() => setShowingReport(true)}>
                   View Detailed Report
                 </Button>
-                <Button variant="outline" className="min-w-[200px]" onClick={() => navigate('/')}>
-                  Return Home
+                <Button variant="outline" className="min-w-[200px]" onClick={() => window.history.back()}>
+                  Go Back
                 </Button>
                 <Button variant="ghost" className="min-w-[200px]" onClick={() => navigate('/practice-tests')}>
                   Go to All Tests
