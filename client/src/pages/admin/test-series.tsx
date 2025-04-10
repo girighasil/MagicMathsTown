@@ -55,7 +55,7 @@ function TestSeriesManagement() {
       category: "",
       testCount: 0,
       price: 0,
-      features: [""],
+      features: ["Free study materials"],
     },
   });
 
@@ -168,7 +168,7 @@ function TestSeriesManagement() {
   };
 
   const addFeature = () => {
-    append("");
+    append("New feature");
   };
 
   const removeFeature = (index: number) => {

@@ -244,7 +244,7 @@ function TestQuestions() {
 
   if (isLoadingTest) {
     return (
-      <AdminLayout>
+      <AdminLayout title="Question Management">
         <div className="flex justify-center items-center h-[400px]">
           <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
         </div>

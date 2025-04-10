@@ -193,7 +193,7 @@ function TestDetails() {
 
   if (isLoadingTestSeries) {
     return (
-      <AdminLayout>
+      <AdminLayout title="Test Management">
         <div className="flex justify-center items-center h-[400px]">
           <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
         </div>
