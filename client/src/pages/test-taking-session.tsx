@@ -27,6 +27,7 @@ const formatTime = (seconds: number): string => {
 
 interface QuestionOption {
   id: number;
+  questionId: number;
   text: string;
   isCorrect: boolean;
 }
@@ -96,13 +97,32 @@ export default function TestTakingSession() {
   });
   
   // Fetch questions for the test
-  const { data: questions, isLoading: isQuestionsLoading } = useQuery({
+  const { data: questionIds, isLoading: isQuestionIdsLoading } = useQuery({
     queryKey: ["/api/tests", testId, "questions"],
     queryFn: async () => {
       const response = await apiRequest("GET", `/api/tests/${testId}/questions`);
       return await response.json() as Question[];
     },
     enabled: !!testId,
+  });
+  
+  // Fetch detailed question data with options
+  const { data: questions, isLoading: isQuestionsLoading } = useQuery({
+    queryKey: ["/api/tests", testId, "questions", "details"],
+    queryFn: async () => {
+      if (!questionIds) return [];
+      
+      // Fetch complete question data including options for each question
+      const questionsWithDetails = await Promise.all(
+        questionIds.map(async (question) => {
+          const detailsResponse = await apiRequest("GET", `/api/questions/${question.id}`);
+          return await detailsResponse.json();
+        })
+      );
+      
+      return questionsWithDetails;
+    },
+    enabled: !!questionIds && questionIds.length > 0,
   });
   
   // Submit answer mutation
@@ -332,7 +352,7 @@ export default function TestTakingSession() {
                   value={selectedOptions[currentQuestion.id] || ""}
                   onValueChange={(value) => handleOptionSelect(currentQuestion.id, value)}
                 >
-                  {currentQuestion.options.map((option) => (
+                  {currentQuestion.options && currentQuestion.options.map((option: QuestionOption) => (
                     <div key={option.id} className="flex items-center space-x-2 mb-3 p-2 rounded hover:bg-secondary/20">
                       <RadioGroupItem value={option.id.toString()} id={`option-${option.id}`} />
                       <Label htmlFor={`option-${option.id}`} className="flex-1 cursor-pointer">{option.text}</Label>
