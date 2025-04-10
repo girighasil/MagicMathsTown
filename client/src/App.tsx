@@ -55,6 +55,10 @@ function Router() {
         <ProtectedRoute path="/dashboard">
           <StudentDashboard />
         </ProtectedRoute>
+
+        <ProtectedRoute path="/student-dashboard">
+          <StudentDashboard />
+        </ProtectedRoute>
         
         {/* Admin routes */}
         <ProtectedRoute path="/admin" adminOnly>
