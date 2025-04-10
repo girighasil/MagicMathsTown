@@ -4,6 +4,7 @@ import NotFound from "@/pages/not-found";
 import AuthPage from "@/pages/auth-page";
 import AdminDashboard from "@/pages/admin";
 import LoginPage from "@/pages/LoginPage";
+import TestSession from "@/pages/test-session";
 import { Suspense, lazy } from "react";
 import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute } from "@/components/common/ProtectedRoute";
@@ -36,6 +37,7 @@ function Router() {
         <Route path="/" component={Home} />
         <Route path="/auth" component={AuthPage} />
         <Route path="/login" component={LoginPage} />
+        <Route path="/test/:id" component={TestSession} />
         
         {/* Admin routes */}
         <ProtectedRoute path="/admin" adminOnly>

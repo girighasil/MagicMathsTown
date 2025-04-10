@@ -1,7 +1,9 @@
 import { motion } from "framer-motion";
 import { Medal, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useLocation } from "wouter";
 import type { TestSeries } from "@/types";
+import { useQuery } from "@tanstack/react-query";
 
 interface TestCardProps {
   test: TestSeries;
@@ -9,6 +11,21 @@ interface TestCardProps {
 }
 
 export default function TestCard({ test, index }: TestCardProps) {
+  const [, navigate] = useLocation();
+  
+  // Fetch tests in this test series
+  const { data: testsInSeries } = useQuery({
+    queryKey: [`/api/test-series/${test.id}/tests`],
+    enabled: !!test.id
+  });
+  
+  const handleStartPracticing = () => {
+    if (testsInSeries && testsInSeries.length > 0) {
+      // Navigate to the first test in the series
+      navigate(`/test/${testsInSeries[0].id}`);
+    }
+  };
+  
   // Define badge color based on category or test count
   const getBadgeColor = (testCount: number, category: string) => {
     if (category === "JEE Main/Advanced") return "bg-blue-100 text-primary";
