@@ -96,34 +96,38 @@ export default function TestTakingSession() {
     enabled: !!testId && !!user,
   });
   
-  // Fetch questions for the test
-  const { data: questionIds, isLoading: isQuestionIdsLoading } = useQuery({
+  // Fetch questions with their details directly
+  const { data: questions, isLoading: isQuestionsLoading } = useQuery({
     queryKey: ["/api/tests", testId, "questions"],
     queryFn: async () => {
+      // First get the question IDs
       const response = await apiRequest("GET", `/api/tests/${testId}/questions`);
-      return await response.json() as Question[];
-    },
-    enabled: !!testId,
-  });
-  
-  // Fetch detailed question data with options
-  const { data: questions, isLoading: isQuestionsLoading } = useQuery({
-    queryKey: ["/api/tests", testId, "questions", "details"],
-    queryFn: async () => {
-      if (!questionIds) return [];
+      const questionData = await response.json() as Question[];
       
-      // Fetch complete question data including options for each question
+      // For each question, fetch its complete data with options
       const questionsWithDetails = await Promise.all(
-        questionIds.map(async (question) => {
-          const detailsResponse = await apiRequest("GET", `/api/questions/${question.id}`);
-          return await detailsResponse.json();
+        questionData.map(async (question) => {
+          try {
+            const detailsResponse = await apiRequest("GET", `/api/questions/${question.id}`);
+            const details = await detailsResponse.json();
+            console.log(`Fetched details for question ${question.id}:`, details);
+            return details;
+          } catch (error) {
+            console.error(`Error fetching details for question ${question.id}:`, error);
+            return {
+              ...question,
+              options: []
+            };
+          }
         })
       );
       
       return questionsWithDetails;
     },
-    enabled: !!questionIds && questionIds.length > 0,
+    enabled: !!testId,
   });
+  
+  const isQuestionIdsLoading = false; // Not needed anymore
   
   // Submit answer mutation
   const submitAnswerMutation = useMutation({
@@ -261,7 +265,7 @@ export default function TestTakingSession() {
   };
   
   // Loading state
-  if (isAuthLoading || isTestAttemptLoading || isQuestionsLoading) {
+  if (isAuthLoading || isTestAttemptLoading || isQuestionsLoading || isQuestionIdsLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -274,6 +278,22 @@ export default function TestTakingSession() {
   if (!user) {
     navigate("/auth");
     return null;
+  }
+  
+  // Debug info
+  console.log("Test Attempt:", testAttempt);
+  console.log("Questions:", questions);
+  
+  // Check if options are available for each question
+  if (questions && questions.length > 0) {
+    questions.forEach((q, i) => {
+      console.log(`Question ${i+1} (ID: ${q.id}):`, q);
+      if (q.options) {
+        console.log(`  Options for question ${q.id}:`, q.options);
+      } else {
+        console.log(`  NO OPTIONS found for question ${q.id}`);
+      }
+    });
   }
   
   // Test attempt or questions not found
@@ -352,12 +372,18 @@ export default function TestTakingSession() {
                   value={selectedOptions[currentQuestion.id] || ""}
                   onValueChange={(value) => handleOptionSelect(currentQuestion.id, value)}
                 >
-                  {currentQuestion.options && currentQuestion.options.map((option: QuestionOption) => (
-                    <div key={option.id} className="flex items-center space-x-2 mb-3 p-2 rounded hover:bg-secondary/20">
-                      <RadioGroupItem value={option.id.toString()} id={`option-${option.id}`} />
-                      <Label htmlFor={`option-${option.id}`} className="flex-1 cursor-pointer">{option.text}</Label>
+                  {currentQuestion.options && currentQuestion.options.length > 0 ? (
+                    currentQuestion.options.map((option: QuestionOption) => (
+                      <div key={option.id} className="flex items-center space-x-2 mb-3 p-2 rounded hover:bg-secondary/20">
+                        <RadioGroupItem value={option.id.toString()} id={`option-${option.id}`} />
+                        <Label htmlFor={`option-${option.id}`} className="flex-1 cursor-pointer">{option.text}</Label>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="p-4 border rounded-md bg-secondary/10">
+                      <p className="text-center text-muted-foreground">No options available for this question.</p>
                     </div>
-                  ))}
+                  )}
                 </RadioGroup>
               )}
             </CardContent>
