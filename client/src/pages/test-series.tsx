@@ -48,8 +48,8 @@ export default function TestSeriesPage() {
           <p className="text-gray-600 mb-6">
             No test series available at the moment. Please check back later.
           </p>
-          <Button onClick={() => navigate('/')}>
-            Back to Home
+          <Button onClick={() => window.history.back()}>
+            Go Back
           </Button>
         </div>
       </div>
