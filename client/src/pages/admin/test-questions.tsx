@@ -454,7 +454,16 @@ function TestQuestions() {
         const questionText = row.questionText;
         return (
           <div className="max-w-md truncate" title={questionText}>
-            {questionText}
+            <a 
+              href="#"
+              className="text-primary hover:underline font-medium"
+              onClick={(e) => {
+                e.preventDefault();
+                openEditModal(row);
+              }}
+            >
+              {questionText}
+            </a>
           </div>
         );
       },

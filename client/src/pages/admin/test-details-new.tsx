@@ -332,6 +332,18 @@ function TestDetailsNew() {
     {
       key: "title",
       title: "Title",
+      render: (row: any) => (
+        <a 
+          href={`/admin/tests/${row.id}/questions`}
+          className="text-primary hover:underline font-medium"
+          onClick={(e) => {
+            e.preventDefault();
+            navigateToQuestions(row);
+          }}
+        >
+          {row.title}
+        </a>
+      ),
     },
     {
       key: "duration",
@@ -527,7 +539,18 @@ function TestDetailsNew() {
                           .filter((test: any) => !test.testSeriesId || test.testSeriesId !== parseInt(id))
                           .map((test: any) => (
                             <TableRow key={test.id}>
-                              <TableCell>{test.title}</TableCell>
+                              <TableCell>
+                                <a 
+                                  href={`/admin/tests/${test.id}/questions`}
+                                  className="text-primary hover:underline font-medium"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    navigate(`/admin/tests/${test.id}/questions`);
+                                  }}
+                                >
+                                  {test.title}
+                                </a>
+                              </TableCell>
                               <TableCell>{test.duration} mins</TableCell>
                               <TableCell>{test.totalMarks}</TableCell>
                               <TableCell>
