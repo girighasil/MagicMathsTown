@@ -309,7 +309,7 @@ export default function TestTakingSession() {
             <p>The test you're looking for doesn't exist or has no questions.</p>
           </CardContent>
           <CardFooter>
-            <Button onClick={() => window.history.back()}>Go Back</Button>
+            <Button onClick={() => navigate('/test-series')}>Back to Test Series</Button>
           </CardFooter>
         </Card>
       </div>

@@ -274,7 +274,7 @@ export default function TestSession() {
           <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-gray-800 mb-2">Test Not Found</h1>
           <p className="text-gray-600 mb-6">The test you're looking for doesn't exist or isn't available.</p>
-          <Button onClick={() => window.history.back()}>Go Back</Button>
+          <Button onClick={() => navigate('/test-series')}>Back to Test Series</Button>
         </div>
       </div>
     );
@@ -417,8 +417,8 @@ export default function TestSession() {
               <Button variant="outline" onClick={() => setShowingReport(false)}>
                 Back to Summary
               </Button>
-              <Button onClick={() => window.history.back()}>
-                Go Back
+              <Button onClick={() => test?.testSeriesId ? navigate(`/test-series/${test.testSeriesId}`) : navigate('/test-series')}>
+                Back to Test Series
               </Button>
             </div>
           </div>
@@ -480,11 +480,11 @@ export default function TestSession() {
                 <Button className="min-w-[200px]" onClick={() => setShowingReport(true)}>
                   View Detailed Report
                 </Button>
-                <Button variant="outline" className="min-w-[200px]" onClick={() => window.history.back()}>
-                  Go Back
+                <Button variant="outline" className="min-w-[200px]" onClick={() => test?.testSeriesId ? navigate(`/test-series/${test.testSeriesId}`) : navigate('/test-series')}>
+                  Back to Test Series
                 </Button>
-                <Button variant="ghost" className="min-w-[200px]" onClick={() => navigate('/practice-tests')}>
-                  Go to All Tests
+                <Button variant="ghost" className="min-w-[200px]" onClick={() => navigate('/test-series')}>
+                  View All Test Series
                 </Button>
               </div>
             </CardContent>
