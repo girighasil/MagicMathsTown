@@ -27,7 +27,6 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, UserCog } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/use-auth";
-import type { User } from "@/types/user";
 
 const profileSchema = z.object({
   fullName: z.string().min(1, "Full name is required"),
@@ -47,7 +46,7 @@ export function EditProfileModal() {
     defaultValues: {
       fullName: user?.fullName || "",
       email: user?.email || "",
-      phone: user?.phone || "",
+      phone: user?.phone ?? "",
     },
   });
 

@@ -13,8 +13,12 @@ import {
   CircleHelp,
   BookOpen,
   TrendingUp,
-  BrainCircuit
+  BrainCircuit,
+  Home,
+  LogOut,
+  UserCog
 } from 'lucide-react';
+import { EditProfileModal } from '@/components/EditProfileModal';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
