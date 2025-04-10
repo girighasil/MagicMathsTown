@@ -5,6 +5,8 @@ import AuthPage from "@/pages/auth-page";
 import AdminDashboard from "@/pages/admin";
 import LoginPage from "@/pages/LoginPage";
 import TestSession from "@/pages/test-session";
+import TestTakingSession from "@/pages/test-taking-session";
+import TestReport from "@/pages/test-report";
 import { Suspense, lazy } from "react";
 import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute } from "@/components/common/ProtectedRoute";
@@ -38,6 +40,12 @@ function Router() {
         <Route path="/auth" component={AuthPage} />
         <Route path="/login" component={LoginPage} />
         <Route path="/test/:id" component={TestSession} />
+        <ProtectedRoute path="/test-taking/:testId">
+          <TestTakingSession />
+        </ProtectedRoute>
+        <ProtectedRoute path="/test-report/:attemptId">
+          <TestReport />
+        </ProtectedRoute>
         
         {/* Admin routes */}
         <ProtectedRoute path="/admin" adminOnly>

@@ -25,8 +25,8 @@ export default function TestCard({ test, index }: TestCardProps) {
     if (isLoading) return;
     
     if (testsInSeries && Array.isArray(testsInSeries) && testsInSeries.length > 0) {
-      // Navigate to the first test in the series
-      navigate(`/test/${testsInSeries[0].id}`);
+      // Navigate to the first test in the series using the new test-taking interface
+      navigate(`/test-taking/${testsInSeries[0].id}`);
     } else {
       // No tests available
       toast({
