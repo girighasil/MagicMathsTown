@@ -31,11 +31,25 @@ const questionSchema = z.object({
       optionText: z.string().min(1, { message: "Option text is required" }),
       isCorrect: z.boolean().default(false),
     })
-  ).min(2, { message: "At least 2 options are required" }),
+  ).optional(),
   explanation: z.object({
     explanationText: z.string().min(1, { message: "Explanation text is required" }),
     imageUrl: z.string().optional(),
   }).optional(),
+}).refine((data) => {
+  // For MCQ questions, require at least 2 options
+  if (data.questionType === 'mcq') {
+    return data.options && data.options.length >= 2;
+  }
+  // For fill-in-blanks, require at least 1 option (as a correct answer)
+  else if (data.questionType === 'fill-blank') {
+    return data.options && data.options.length >= 1;
+  }
+  // For subjective, no options required
+  return true;
+}, {
+  message: "Options are required for this question type",
+  path: ["options"],
 });
 
 type QuestionFormValues = z.infer<typeof questionSchema>;
@@ -113,16 +127,20 @@ function TestQuestions() {
       const questionResponse = await apiRequest("POST", "/api/admin/questions", questionData);
       const question = await questionResponse.json();
       
-      // Then create options
-      const optionPromises = data.options.map(option => 
-        apiRequest("POST", "/api/admin/options", {
-          questionId: question.question.id,
-          optionText: option.optionText,
-          isCorrect: option.isCorrect,
-        })
-      );
-      
-      await Promise.all(optionPromises);
+      // Handle options based on question type
+      if (data.options && data.options.length > 0 && (data.questionType === "mcq" || data.questionType === "fill-blank")) {
+        // For MCQ and fill-blank, create options
+        const optionPromises = data.options.map(option => 
+          apiRequest("POST", "/api/admin/options", {
+            questionId: question.question.id,
+            optionText: option.optionText,
+            // For fill-blank, all options are correct answers
+            isCorrect: data.questionType === "fill-blank" ? true : option.isCorrect,
+          })
+        );
+        
+        await Promise.all(optionPromises);
+      }
       
       // Finally create explanation if provided
       if (data.explanation && data.explanation.explanationText) {
@@ -215,6 +233,7 @@ function TestQuestions() {
   const openAddModal = () => {
     form.reset();
     setSelectedQuestion(null);
+    setQuestionType("mcq"); // Reset to default question type
     setIsAddModalOpen(true);
   };
 
@@ -232,15 +251,28 @@ function TestQuestions() {
   };
 
   const removeOption = (index: number) => {
-    if (fields.length > 2) {
-      remove(index);
-    } else {
+    // For MCQ, minimum 2 options are required
+    if (questionType === "mcq" && fields.length <= 2) {
       toast({
         title: "Error",
-        description: "A question must have at least 2 options",
+        description: "Multiple choice questions must have at least 2 options",
         variant: "destructive",
       });
+      return;
     }
+    
+    // For fill-blank, minimum 1 option (answer) is required
+    if (questionType === "fill-blank" && fields.length <= 1) {
+      toast({
+        title: "Error",
+        description: "Fill in the blanks questions must have at least 1 answer",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // If we're here, it's safe to remove the option
+    remove(index);
   };
 
   if (isLoadingTest) {
@@ -506,7 +538,13 @@ function TestQuestions() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Question Type</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select 
+                          onValueChange={(value) => {
+                            field.onChange(value);
+                            setQuestionType(value);
+                          }} 
+                          defaultValue={field.value}
+                        >
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Select type" />
@@ -538,53 +576,116 @@ function TestQuestions() {
                   />
                 </div>
                 
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <h3 className="text-sm font-medium">Options</h3>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={addOption}
-                      disabled={fields.length >= 6}
-                    >
-                      <PlusCircle className="h-4 w-4 mr-1" /> Add Option
-                    </Button>
-                  </div>
-                  
-                  {fields.map((field, index) => (
-                    <div key={field.id} className="flex gap-2 items-start">
-                      <div className="flex-grow space-y-2">
-                        <FormField
-                          control={form.control}
-                          name={`options.${index}.optionText`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormControl>
-                                <Input placeholder={`Option ${index + 1}`} {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                {/* MCQ Options - Only show for MCQ type */}
+                {questionType === "mcq" && (
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <h3 className="text-sm font-medium">Options</h3>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={addOption}
+                        disabled={fields.length >= 6}
+                      >
+                        <PlusCircle className="h-4 w-4 mr-1" /> Add Option
+                      </Button>
+                    </div>
+                    
+                    {fields.map((field, index) => (
+                      <div key={field.id} className="flex gap-2 items-start">
+                        <div className="flex-grow space-y-2">
+                          <FormField
+                            control={form.control}
+                            name={`options.${index}.optionText`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormControl>
+                                  <Input placeholder={`Option ${index + 1}`} {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                        
+                        <div className="flex items-center space-x-2 mt-2">
+                          <FormField
+                            control={form.control}
+                            name={`options.${index}.isCorrect`}
+                            render={({ field }) => (
+                              <FormItem className="flex items-center space-x-2">
+                                <FormControl>
+                                  <input
+                                    type="checkbox"
+                                    checked={field.value}
+                                    onChange={field.onChange}
+                                    className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                  />
+                                </FormControl>
+                                <FormLabel className="text-sm font-normal">Correct</FormLabel>
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => removeOption(index)}
+                            disabled={fields.length <= 2}
+                          >
+                            <MinusCircle className="h-4 w-4 text-muted-foreground" />
+                          </Button>
+                        </div>
                       </div>
-                      
-                      <div className="flex items-center space-x-2 mt-2">
+                    ))}
+                  </div>
+                )}
+                
+                {/* Fill in the Blanks - Only show for fill-blank type */}
+                {questionType === "fill-blank" && (
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <h3 className="text-sm font-medium">Answers</h3>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={addOption}
+                        disabled={fields.length >= 4}
+                      >
+                        <PlusCircle className="h-4 w-4 mr-1" /> Add Answer
+                      </Button>
+                    </div>
+                    
+                    <p className="text-sm text-muted-foreground">
+                      Add all possible correct answers. Students will need to match one of these exactly.
+                    </p>
+                    
+                    {fields.map((field, index) => (
+                      <div key={field.id} className="flex gap-2 items-start">
+                        <div className="flex-grow space-y-2">
+                          <FormField
+                            control={form.control}
+                            name={`options.${index}.optionText`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormControl>
+                                  <Input placeholder={`Correct Answer ${index + 1}`} {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                        
+                        {/* Hidden isCorrect field - all are correct for fill-in-blanks */}
                         <FormField
                           control={form.control}
                           name={`options.${index}.isCorrect`}
                           render={({ field }) => (
-                            <FormItem className="flex items-center space-x-2">
-                              <FormControl>
-                                <input
-                                  type="checkbox"
-                                  checked={field.value}
-                                  onChange={field.onChange}
-                                  className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                                />
-                              </FormControl>
-                              <FormLabel className="text-sm font-normal">Correct</FormLabel>
-                            </FormItem>
+                            <input type="hidden" {...field} value="true" />
                           )}
                         />
                         
@@ -593,14 +694,26 @@ function TestQuestions() {
                           variant="ghost"
                           size="icon"
                           onClick={() => removeOption(index)}
-                          disabled={fields.length <= 2}
+                          disabled={fields.length <= 1}
                         >
                           <MinusCircle className="h-4 w-4 text-muted-foreground" />
                         </Button>
                       </div>
+                    ))}
+                  </div>
+                )}
+                
+                {/* Subjective Answer - No options needed */}
+                {questionType === "subjective" && (
+                  <div className="space-y-4">
+                    <div className="bg-muted p-4 rounded-md">
+                      <h3 className="text-sm font-medium mb-2">Subjective Answer</h3>
+                      <p className="text-sm text-muted-foreground">
+                        This question requires a written answer. Students will submit their response which will need to be manually evaluated.
+                      </p>
                     </div>
-                  ))}
-                </div>
+                  </div>
+                )}
                 
                 <Separator />
                 
