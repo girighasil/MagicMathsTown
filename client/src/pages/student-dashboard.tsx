@@ -17,9 +17,7 @@ import {
   Home,
   LogOut,
   UserCog,
-  User,
-  Upload,
-  Camera
+  User
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -221,49 +219,6 @@ export default function StudentDashboard() {
     <div className="container mx-auto py-8 px-4">
       <div className="mb-8 flex flex-col md:flex-row justify-between gap-4 items-start md:items-center">
         <div className="flex items-center gap-4">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative h-14 w-14 rounded-full p-0">
-                <Avatar className="h-14 w-14 border-2 border-primary cursor-pointer">
-                  <AvatarFallback className="text-lg font-semibold">
-                    {user.fullName ? user.fullName.charAt(0) : user.username.charAt(0)}
-                  </AvatarFallback>
-                </Avatar>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56" align="end" forceMount>
-              <DropdownMenuLabel className="font-normal">
-                <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">{user.fullName || user.username}</p>
-                  <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
-                </div>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuGroup>
-                <DropdownMenuItem onClick={() => document.getElementById('edit-profile-dialog-trigger')?.click()}>
-                  <User className="mr-2 h-4 w-4" />
-                  <span>Edit Profile</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate('/')}>
-                  <Home className="mr-2 h-4 w-4" />
-                  <span>Homepage</span>
-                </DropdownMenuItem>
-              </DropdownMenuGroup>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem 
-                className="text-red-500 focus:text-red-500"
-                onClick={handleLogout}
-                disabled={logoutMutation.isPending}
-              >
-                {logoutMutation.isPending ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <LogOut className="mr-2 h-4 w-4" />
-                )}
-                <span>Log out</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
           <div>
             <h1 className="text-2xl font-bold text-gray-800">{user.fullName || user.username}'s Dashboard</h1>
             <p className="text-muted-foreground">Track your progress and performance</p>
@@ -275,7 +230,17 @@ export default function StudentDashboard() {
             <BookOpen className="h-4 w-4" />
             Test Series
           </Button>
-        </div>
+          
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="relative h-12 w-12 rounded-full">
+                <Avatar className="h-10 w-10 border-2 border-primary">
+                  <AvatarFallback className="text-lg font-semibold">
+                    {user.fullName ? user.fullName.charAt(0) : user.username.charAt(0)}
+                  </AvatarFallback>
+                </Avatar>
+              </Button>
+            </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56" align="end" forceMount>
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">

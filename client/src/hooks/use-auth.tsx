@@ -29,7 +29,6 @@ type RegisterData = {
   email: string;
   fullName: string;
   phone?: string;
-  photoUrl?: string;
   role?: string;
 };
 

@@ -6,5 +6,4 @@ export type User = {
   fullName: string;
   role: string;
   phone: string | null;
-  photoUrl?: string | null;
 };

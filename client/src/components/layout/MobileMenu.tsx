@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { useEffect } from "react";
 import { useLocation } from "wouter";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/use-auth";
 import { LogOut, BarChart4 } from "lucide-react";
 
@@ -13,18 +13,7 @@ interface MobileMenuProps {
 
 export default function MobileMenu({ isOpen, onClose, links }: MobileMenuProps) {
   const [, navigate] = useLocation();
-  
-  // Safely access auth context - it will be null at the top level where AuthProvider hasn't wrapped yet
-  let user = null;
-  let logoutMutation: any = null;
-  try {
-    const auth = useAuth();
-    user = auth.user;
-    logoutMutation = auth.logoutMutation;
-  } catch (error) {
-    // Auth context not available, handle gracefully
-    console.log("Auth context not available in MobileMenu");
-  }
+  const { user, logoutMutation } = useAuth();
   
   // Close menu on screen resize
   useEffect(() => {
@@ -61,9 +50,7 @@ export default function MobileMenu({ isOpen, onClose, links }: MobileMenuProps) 
   };
   
   const handleLogout = () => {
-    if (logoutMutation) {
-      logoutMutation.mutate();
-    }
+    logoutMutation.mutate();
     onClose();
     navigate('/');
   };
@@ -85,13 +72,9 @@ export default function MobileMenu({ isOpen, onClose, links }: MobileMenuProps) 
           <div className="mb-6 py-3 border-b border-gray-100">
             <div className="flex items-center gap-3 mb-3">
               <Avatar className="h-10 w-10 border border-primary/30">
-                {user.photoUrl ? (
-                  <AvatarImage src={user.photoUrl} alt={user.fullName || user.username} />
-                ) : (
-                  <AvatarFallback className="text-sm">
-                    {user.username.charAt(0).toUpperCase()}
-                  </AvatarFallback>
-                )}
+                <AvatarFallback className="text-sm">
+                  {user.username.charAt(0).toUpperCase()}
+                </AvatarFallback>
               </Avatar>
               <div>
                 <div className="font-medium">{user.fullName || user.username}</div>
@@ -116,11 +99,9 @@ export default function MobileMenu({ isOpen, onClose, links }: MobileMenuProps) 
           {links.map((link, index) => (
             <li key={index} className="border-b border-gray-100 pb-2">
               <a 
-                onClick={(e) => {
-                  e.preventDefault();
-                  handleNavigation(link.path);
-                }}
-                className="block font-medium text-lg py-2 hover:text-primary transition-colors cursor-pointer"
+                href={link.path} 
+                className="block font-medium text-lg py-2 hover:text-primary transition-colors"
+                onClick={handleLinkClick}
               >
                 {link.title}
               </a>

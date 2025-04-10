@@ -1074,14 +1074,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Forbidden: You can only update your own profile" });
       }
       
-      const { fullName, email, phone, photoUrl } = req.body;
+      const { fullName, email, phone } = req.body;
       
       // Update user profile
       const updatedUser = await storage.updateUser(userId, {
         fullName,
         email,
-        phone,
-        photoUrl
+        phone
       });
       
       // Return the updated user without the password
