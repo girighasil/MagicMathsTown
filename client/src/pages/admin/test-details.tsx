@@ -12,8 +12,10 @@ import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Loader2, Plus, FileUp, ExternalLink, Edit, Trash2, Link as LinkIcon } from "lucide-react";
+import { Loader2, Plus, FileUp, ExternalLink, Edit, Trash2, Link as LinkIcon, Eye, EyeOff, AlertCircle } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -343,17 +345,109 @@ function TestDetails() {
     },
   ];
 
+  // Mutation to publish/unpublish test series
+  const publishTestSeriesMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest("PUT", `/api/admin/test-series/${id}`, {
+        isPublished: !testSeries?.isPublished
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: testSeries?.isPublished 
+          ? "Test series unpublished successfully" 
+          : "Test series published successfully",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/test-series', parseInt(id)] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: `Failed to update test series: ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handlePublishToggle = () => {
+    publishTestSeriesMutation.mutate();
+  };
+
   return (
     <AdminLayout title="Test Management">
       <div className="container py-6">
-        <div className="flex justify-between items-center mb-6">
-          <div>
-            <h1 className="text-2xl font-bold">Test Series: {testSeries?.title}</h1>
-            <p className="text-muted-foreground">{testSeries?.description}</p>
+        <div className="mb-8">
+          <div className="bg-background border rounded-lg p-6 shadow-sm">
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <div className="flex items-center gap-3 mb-2">
+                  <h1 className="text-3xl font-bold">{testSeries?.title}</h1>
+                  {testSeries?.isPublished ? (
+                    <Badge className="bg-green-600">Published</Badge>
+                  ) : (
+                    <Badge variant="outline">Draft</Badge>
+                  )}
+                </div>
+                <p className="text-muted-foreground text-lg mb-4">{testSeries?.description}</p>
+                
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+                  <div className="bg-muted/50 p-3 rounded-md">
+                    <p className="text-xs text-muted-foreground">Category</p>
+                    <p className="font-medium">{testSeries?.category}</p>
+                  </div>
+                  <div className="bg-muted/50 p-3 rounded-md">
+                    <p className="text-xs text-muted-foreground">Price</p>
+                    <p className="font-medium">₹{testSeries?.price}</p>
+                  </div>
+                  <div className="bg-muted/50 p-3 rounded-md">
+                    <p className="text-xs text-muted-foreground">Tests Count</p>
+                    <p className="font-medium">{seriesTests?.length || 0} / {testSeries?.testCount}</p>
+                  </div>
+                  <div className="bg-muted/50 p-3 rounded-md">
+                    <p className="text-xs text-muted-foreground">Status</p>
+                    <p className={`font-medium ${testSeries?.isPublished ? 'text-green-600' : ''}`}>
+                      {testSeries?.isPublished ? 'Published' : 'Draft'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex gap-3">
+                <Button onClick={openAddModal}>
+                  <Plus className="mr-2 h-4 w-4" /> Add Test
+                </Button>
+                <Button 
+                  variant={testSeries?.isPublished ? "outline" : "default"}
+                  onClick={handlePublishToggle}
+                  disabled={publishTestSeriesMutation.isPending || !seriesTests?.length}
+                >
+                  {publishTestSeriesMutation.isPending ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : testSeries?.isPublished ? (
+                    <EyeOff className="mr-2 h-4 w-4" />
+                  ) : (
+                    <Eye className="mr-2 h-4 w-4" />
+                  )}
+                  {testSeries?.isPublished ? "Unpublish" : "Publish"}
+                </Button>
+              </div>
+            </div>
+            
+            {!seriesTests?.length && !testSeries?.isPublished && (
+              <Alert className="mt-4">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Test series is incomplete</AlertTitle>
+                <AlertDescription>
+                  You need to add at least one test before publishing this test series.
+                </AlertDescription>
+              </Alert>
+            )}
           </div>
-          <Button onClick={openAddModal}>
-            <Plus className="mr-2 h-4 w-4" /> Add Test
-          </Button>
+        </div>
+        
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-semibold">Tests Management</h2>
         </div>
 
         {isLoadingSeriesTests || isLoadingAllTests ? (
