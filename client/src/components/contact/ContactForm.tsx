@@ -13,8 +13,8 @@ import { CONTACT_SUBJECTS } from "@/lib/constants";
 
 const contactFormSchema = z.object({
   name: z.string().min(2, "Name is required"),
-  email: z.string().email("Please enter a valid email"),
-  phone: z.string().optional(),
+  email: z.string().email("Please enter a valid email").optional(),
+  phone: z.string().min(5, "Phone number is required"),
   subject: z.string().min(1, "Please select a subject"),
   message: z.string().min(10, "Message must be at least 10 characters"),
 });
@@ -83,7 +83,7 @@ export default function ContactForm() {
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Your Email*</FormLabel>
+                <FormLabel>Your Email</FormLabel>
                 <FormControl>
                   <Input type="email" {...field} />
                 </FormControl>
@@ -98,7 +98,7 @@ export default function ContactForm() {
           name="phone"
           render={({ field }) => (
             <FormItem className="mb-6">
-              <FormLabel>Phone Number</FormLabel>
+              <FormLabel>Phone Number*</FormLabel>
               <FormControl>
                 <Input type="tel" {...field} />
               </FormControl>
