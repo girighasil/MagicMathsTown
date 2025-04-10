@@ -348,19 +348,25 @@ function TestDetails() {
   // Mutation to publish/unpublish test series
   const publishTestSeriesMutation = useMutation({
     mutationFn: async () => {
-      const data = { isPublished: !testSeries?.isPublished };
+      if (!testSeries) return null;
+      const data = { isPublished: !testSeries.isPublished };
       return await apiRequest("PUT", `/api/admin/test-series/${id}`, data);
     },
     onSuccess: () => {
+      if (!testSeries) return;
+      
       toast({
         title: "Success",
-        description: testSeries?.isPublished 
+        description: testSeries.isPublished 
           ? "Test series unpublished successfully" 
           : "Test series published successfully",
       });
+      
+      // Invalidate all test series queries to update the lists
+      queryClient.invalidateQueries({ queryKey: ['/api/test-series'] });
       queryClient.invalidateQueries({ queryKey: ['/api/test-series', parseInt(id)] });
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       toast({
         title: "Error",
         description: `Failed to update test series: ${error.message}`,
