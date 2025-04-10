@@ -1,5 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { useEffect } from "react";
+import { useLocation } from "wouter";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useAuth } from "@/hooks/use-auth";
+import { LogOut, BarChart4 } from "lucide-react";
 
 interface MobileMenuProps {
   isOpen: boolean;
@@ -8,6 +12,9 @@ interface MobileMenuProps {
 }
 
 export default function MobileMenu({ isOpen, onClose, links }: MobileMenuProps) {
+  const [, navigate] = useLocation();
+  const { user, logoutMutation } = useAuth();
+  
   // Close menu on screen resize
   useEffect(() => {
     const handleResize = () => {
@@ -36,6 +43,17 @@ export default function MobileMenu({ isOpen, onClose, links }: MobileMenuProps) 
   const handleLinkClick = () => {
     onClose();
   };
+  
+  const handleNavigation = (path: string) => {
+    navigate(path);
+    onClose();
+  };
+  
+  const handleLogout = () => {
+    logoutMutation.mutate();
+    onClose();
+    navigate('/');
+  };
 
   if (!isOpen) return null;
 
@@ -50,6 +68,33 @@ export default function MobileMenu({ isOpen, onClose, links }: MobileMenuProps) 
       </div>
       
       <div className="p-4">
+        {user && (
+          <div className="mb-6 py-3 border-b border-gray-100">
+            <div className="flex items-center gap-3 mb-3">
+              <Avatar className="h-10 w-10 border border-primary/30">
+                <AvatarFallback className="text-sm">
+                  {user.username.charAt(0).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <div className="font-medium">{user.fullName || user.username}</div>
+                <div className="text-xs text-gray-500">{user.email}</div>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 gap-2">
+              <Button 
+                variant="outline"
+                size="sm"
+                className="w-full justify-start"
+                onClick={() => handleNavigation('/dashboard')}
+              >
+                <BarChart4 className="h-4 w-4 mr-2" />
+                Dashboard
+              </Button>
+            </div>
+          </div>
+        )}
+      
         <ul className="space-y-4">
           {links.map((link, index) => (
             <li key={index} className="border-b border-gray-100 pb-2">
@@ -65,12 +110,32 @@ export default function MobileMenu({ isOpen, onClose, links }: MobileMenuProps) 
         </ul>
         
         <div className="mt-8 space-y-3">
-          <Button variant="outline" className="w-full border-primary text-primary hover:bg-primary hover:text-white">
-            Login
-          </Button>
-          <Button className="w-full bg-primary text-white hover:bg-primary/90">
-            Register
-          </Button>
+          {user ? (
+            <Button 
+              variant="destructive" 
+              className="w-full"
+              onClick={handleLogout}
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              Logout
+            </Button>
+          ) : (
+            <>
+              <Button 
+                variant="outline" 
+                className="w-full border-primary text-primary hover:bg-primary hover:text-white"
+                onClick={() => handleNavigation('/auth')}
+              >
+                Login
+              </Button>
+              <Button 
+                className="w-full bg-primary text-white hover:bg-primary/90"
+                onClick={() => handleNavigation('/auth')}
+              >
+                Register
+              </Button>
+            </>
+          )}
         </div>
       </div>
     </div>
