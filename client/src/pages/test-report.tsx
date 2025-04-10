@@ -156,7 +156,7 @@ export default function TestReport() {
             <p>Failed to load test report. The test attempt may not exist or you don't have permission to view it.</p>
           </CardContent>
           <CardFooter>
-            <Button onClick={() => navigate("/")}>Return Home</Button>
+            <Button onClick={() => window.history.back()}>Go Back</Button>
           </CardFooter>
         </Card>
       </div>
@@ -173,8 +173,8 @@ export default function TestReport() {
   
   return (
     <div className="container mx-auto py-6 px-4">
-      <Button variant="outline" onClick={() => navigate("/")} className="mb-4">
-        <ArrowLeft className="mr-2 h-4 w-4" /> Back to Home
+      <Button variant="outline" onClick={() => window.history.back()} className="mb-4">
+        <ArrowLeft className="mr-2 h-4 w-4" /> Back
       </Button>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -459,7 +459,7 @@ export default function TestReport() {
           </Tabs>
         </CardContent>
         <CardFooter>
-          <Button onClick={() => navigate("/")}>Return to Home</Button>
+          <Button onClick={() => window.history.back()}>Go Back</Button>
         </CardFooter>
       </Card>
     </div>

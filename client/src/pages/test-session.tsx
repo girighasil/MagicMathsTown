@@ -274,7 +274,7 @@ export default function TestSession() {
           <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-gray-800 mb-2">Test Not Found</h1>
           <p className="text-gray-600 mb-6">The test you're looking for doesn't exist or isn't available.</p>
-          <Button onClick={() => navigate('/')}>Return Home</Button>
+          <Button onClick={() => window.history.back()}>Go Back</Button>
         </div>
       </div>
     );
@@ -417,8 +417,8 @@ export default function TestSession() {
               <Button variant="outline" onClick={() => setShowingReport(false)}>
                 Back to Summary
               </Button>
-              <Button onClick={() => navigate('/')}>
-                Return Home
+              <Button onClick={() => window.history.back()}>
+                Go Back
               </Button>
             </div>
           </div>
