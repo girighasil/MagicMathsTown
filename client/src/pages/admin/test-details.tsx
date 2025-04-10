@@ -3,7 +3,7 @@ import { useParams, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { SimpleDataTable } from "@/components/admin/SimpleDataTable";
 import { AdminLayout } from "@/components/admin/AdminLayout";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -345,33 +345,29 @@ function TestDetails() {
     },
   ];
 
-  // Mutation to publish/unpublish test series
-  const publishTestSeriesMutation = useMutation({
-    mutationFn: async () => {
-      // Make sure testSeries exists
-      if (!testSeries) throw new Error("Test series not found");
-      
-      // Create a new object for the update data to avoid references
+  // Create a stable mutation function that doesn't depend on testSeries
+  const publishUnpublishMutation = useMutation({
+    mutationFn: async (isCurrentlyPublished: boolean) => {
+      // Create a new object for the update data
       const updateData = { 
-        isPublished: !testSeries.isPublished 
+        isPublished: !isCurrentlyPublished 
       };
       
-      // Call the API with explicit typing
+      // Call the API
       return await apiRequest("PUT", `/api/admin/test-series/${id}`, updateData);
     },
-    onSuccess: () => {
-      if (!testSeries) return;
-      
+    onSuccess: (_, isCurrentlyPublished) => {
       // Show success message
       toast({
         title: "Success",
-        description: testSeries.isPublished 
+        description: isCurrentlyPublished 
           ? "Test series unpublished successfully" 
           : "Test series published successfully",
       });
       
-      // Invalidate queries to refresh data
+      // Invalidate queries
       queryClient.invalidateQueries({ queryKey: ['/api/test-series'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/test-series', parseInt(id)] });
     },
     onError: (error: any) => {
       toast({
@@ -382,18 +378,18 @@ function TestDetails() {
     },
   });
 
-  const handlePublishToggle = () => {
-    // Only mutate if testSeries is defined
-    if (testSeries) {
-      publishTestSeriesMutation.mutate();
-    } else {
+  const handlePublishToggle = useCallback(() => {
+    if (!testSeries) {
       toast({
         title: "Error",
         description: "Test series data is not loaded yet. Please try again.",
         variant: "destructive",
       });
+      return;
     }
-  };
+    
+    publishUnpublishMutation.mutate(!!testSeries.isPublished);
+  }, [testSeries, publishUnpublishMutation]);
 
   return (
     <AdminLayout title="Test Management">
@@ -442,9 +438,9 @@ function TestDetails() {
                   <Button 
                     variant={testSeries.isPublished ? "outline" : "default"}
                     onClick={handlePublishToggle}
-                    disabled={publishTestSeriesMutation.isPending || !seriesTests?.length}
+                    disabled={publishUnpublishMutation.isPending || !seriesTests?.length}
                   >
-                    {publishTestSeriesMutation.isPending ? (
+                    {publishUnpublishMutation.isPending ? (
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     ) : testSeries.isPublished ? (
                       <EyeOff className="mr-2 h-4 w-4" />
