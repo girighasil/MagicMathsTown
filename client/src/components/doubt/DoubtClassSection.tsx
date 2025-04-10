@@ -28,7 +28,7 @@ export default function DoubtClassSection() {
               Our specialized doubt clearing sessions ensure you never get stuck on a problem. 
               Access expert teachers who provide step-by-step solutions to your mathematics queries.
             </p>
-            
+
             <div className="mb-8">
               {features.map((feature, index) => (
                 <motion.div 
@@ -45,7 +45,7 @@ export default function DoubtClassSection() {
                 </motion.div>
               ))}
             </div>
-            
+
             <div className="flex flex-col sm:flex-row sm:space-x-4 space-y-3 sm:space-y-0">
               <Button size="lg" className="bg-primary hover:bg-primary/90 text-white">
                 Book a Doubt Session
@@ -55,7 +55,7 @@ export default function DoubtClassSection() {
               </Button>
             </div>
           </motion.div>
-          
+
           <motion.div 
             className="lg:w-1/2"
             initial={{ opacity: 0, x: 20 }}
@@ -64,7 +64,7 @@ export default function DoubtClassSection() {
           >
             <div className="bg-white rounded-lg shadow-xl overflow-hidden">
               <div className="bg-primary p-4 text-white">
-                <h3 className="font-semibold text-xl">Try Free Demo</h3>
+                <h3 className="font-semibold text-xl">Book Free Demo</h3>
               </div>
               <DoubtForm />
             </div>
