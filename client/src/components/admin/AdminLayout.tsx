@@ -90,6 +90,9 @@ export function AdminLayout({ children, title }: AdminLayoutProps) {
                     </Link>
                   ))}
                   <Separator className="my-2" />
+                  <div className="mb-2">
+                    <ChangePasswordModal />
+                  </div>
                   <Button
                     variant="ghost"
                     className="w-full justify-start gap-2 text-destructive"
@@ -110,9 +113,25 @@ export function AdminLayout({ children, title }: AdminLayoutProps) {
           <div className="flex items-center gap-4">
             <div className="hidden lg:flex lg:items-center lg:gap-4">
               <span className="text-sm">{user?.fullName}</span>
-              <Avatar>
-                <AvatarFallback>{user?.fullName?.charAt(0) || "U"}</AvatarFallback>
-              </Avatar>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Avatar className="cursor-pointer">
+                    <AvatarFallback>{user?.fullName?.charAt(0) || "U"}</AvatarFallback>
+                  </Avatar>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <div className="px-0">
+                    <ChangePasswordModal />
+                  </div>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem className="text-destructive" onClick={handleLogout}>
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </div>
@@ -134,6 +153,9 @@ export function AdminLayout({ children, title }: AdminLayoutProps) {
               </Link>
             ))}
             <Separator className="my-2" />
+            <div className="mb-2">
+              <ChangePasswordModal />
+            </div>
             <Button
               variant="ghost"
               className="w-full justify-start gap-2 text-destructive"

@@ -24,7 +24,7 @@ import { z } from "zod";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
+import { Loader2, Lock } from "lucide-react";
 
 const changePasswordSchema = z
   .object({
@@ -84,7 +84,10 @@ export function ChangePasswordModal() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline">Change Password</Button>
+        <button className="flex items-center w-full px-2 py-2 text-sm cursor-pointer rounded-sm hover:bg-accent">
+          <Lock className="h-4 w-4 mr-2" />
+          <span>Change Password</span>
+        </button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
