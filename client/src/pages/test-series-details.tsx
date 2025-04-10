@@ -79,7 +79,7 @@ export default function TestSeriesDetails() {
   };
 
   const handleGoBack = () => {
-    navigate("/");
+    navigate("/test-series");
   };
 
   if (isSeriesLoading || isTestsLoading) {
@@ -106,7 +106,7 @@ export default function TestSeriesDetails() {
           </p>
           <Button onClick={handleGoBack}>
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Go Back
+            Back to Test Series
           </Button>
         </div>
       </div>
@@ -118,7 +118,7 @@ export default function TestSeriesDetails() {
       {/* Back button */}
       <Button variant="ghost" onClick={handleGoBack} className="mb-6">
         <ArrowLeft className="mr-2 h-4 w-4" />
-        Back
+        Back to Test Series
       </Button>
 
       {/* Test Series Header */}
