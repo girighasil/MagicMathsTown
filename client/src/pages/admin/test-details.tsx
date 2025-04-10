@@ -348,13 +348,21 @@ function TestDetails() {
   // Mutation to publish/unpublish test series
   const publishTestSeriesMutation = useMutation({
     mutationFn: async () => {
-      if (!testSeries) return null;
-      const data = { isPublished: !testSeries.isPublished };
-      return await apiRequest("PUT", `/api/admin/test-series/${id}`, data);
+      // Make sure testSeries exists
+      if (!testSeries) throw new Error("Test series not found");
+      
+      // Create a new object for the update data to avoid references
+      const updateData = { 
+        isPublished: !testSeries.isPublished 
+      };
+      
+      // Call the API with explicit typing
+      return await apiRequest("PUT", `/api/admin/test-series/${id}`, updateData);
     },
     onSuccess: () => {
       if (!testSeries) return;
       
+      // Show success message
       toast({
         title: "Success",
         description: testSeries.isPublished 
@@ -362,21 +370,29 @@ function TestDetails() {
           : "Test series published successfully",
       });
       
-      // Invalidate all test series queries to update the lists
+      // Invalidate queries to refresh data
       queryClient.invalidateQueries({ queryKey: ['/api/test-series'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/test-series', parseInt(id)] });
     },
-    onError: (error: Error) => {
+    onError: (error: any) => {
       toast({
         title: "Error",
-        description: `Failed to update test series: ${error.message}`,
+        description: `Failed to update test series: ${error.message || "Unknown error"}`,
         variant: "destructive",
       });
     },
   });
 
   const handlePublishToggle = () => {
-    publishTestSeriesMutation.mutate();
+    // Only mutate if testSeries is defined
+    if (testSeries) {
+      publishTestSeriesMutation.mutate();
+    } else {
+      toast({
+        title: "Error",
+        description: "Test series data is not loaded yet. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -422,20 +438,22 @@ function TestDetails() {
                 <Button onClick={openAddModal}>
                   <Plus className="mr-2 h-4 w-4" /> Add Test
                 </Button>
-                <Button 
-                  variant={testSeries?.isPublished ? "outline" : "default"}
-                  onClick={handlePublishToggle}
-                  disabled={publishTestSeriesMutation.isPending || !seriesTests?.length}
-                >
-                  {publishTestSeriesMutation.isPending ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  ) : testSeries?.isPublished ? (
-                    <EyeOff className="mr-2 h-4 w-4" />
-                  ) : (
-                    <Eye className="mr-2 h-4 w-4" />
-                  )}
-                  {testSeries?.isPublished ? "Unpublish" : "Publish"}
-                </Button>
+                {testSeries && (
+                  <Button 
+                    variant={testSeries.isPublished ? "outline" : "default"}
+                    onClick={handlePublishToggle}
+                    disabled={publishTestSeriesMutation.isPending || !seriesTests?.length}
+                  >
+                    {publishTestSeriesMutation.isPending ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : testSeries.isPublished ? (
+                      <EyeOff className="mr-2 h-4 w-4" />
+                    ) : (
+                      <Eye className="mr-2 h-4 w-4" />
+                    )}
+                    {testSeries.isPublished ? "Unpublish" : "Publish"}
+                  </Button>
+                )}
               </div>
             </div>
             
