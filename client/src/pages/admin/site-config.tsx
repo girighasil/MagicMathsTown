@@ -21,6 +21,7 @@ export default function SiteConfigManagement() {
   const [siteTitle, setSiteTitle] = useState('');
   const [tagline, setTagline] = useState('');
   const [instituteName, setInstituteName] = useState('');
+  const [logoUrl, setLogoUrl] = useState('');
   const [uploadedLogo, setUploadedLogo] = useState<File | null>(null);
   const [uploadedLogoPreview, setUploadedLogoPreview] = useState('');
   
@@ -176,17 +177,78 @@ export default function SiteConfigManagement() {
   
 
   
+  // Logo upload handler
+  const handleLogoUpload = async (): Promise<string | null> => {
+    if (!uploadedLogo) return null;
+    
+    try {
+      const formData = new FormData();
+      formData.append('file', uploadedLogo);
+      
+      // If we have an actual API for file uploads, we would use it here
+      // For now, we'll just use the base64 version for demonstration
+      return uploadedLogoPreview;
+      
+      // In a real implementation with a file upload API:
+      // const response = await fetch('/api/admin/upload', {
+      //   method: 'POST',
+      //   body: formData,
+      // });
+      // const data = await response.json();
+      // return data.url;
+    } catch (error) {
+      console.error('Error uploading logo:', error);
+      toast({
+        title: 'Upload failed',
+        description: 'Failed to upload logo image. Please try again or use an image URL instead.',
+        variant: 'destructive',
+      });
+      return null;
+    }
+  };
+
   const saveGeneralSettings = async () => {
     setSaving(true);
     try {
+      // Handle logo upload if there is one
+      let finalLogoUrl = logoUrl;
+      if (uploadedLogo) {
+        const uploadedUrl = await handleLogoUpload();
+        if (uploadedUrl) {
+          finalLogoUrl = uploadedUrl;
+          setLogoUrl(uploadedUrl);
+        }
+      }
+      
+      // Save general settings - site title
       await apiRequest('PUT', `/api/admin/site-config/siteTitle`, {
         value: siteTitle
+      });
+      
+      // Save tagline
+      await apiRequest('PUT', `/api/admin/site-config/tagline`, {
+        value: tagline
+      });
+      
+      // Save institute name
+      await apiRequest('PUT', `/api/admin/site-config/instituteName`, {
+        value: instituteName
+      });
+      
+      // Save logo URL
+      await apiRequest('PUT', `/api/admin/site-config/logoUrl`, {
+        value: finalLogoUrl
       });
       
       toast({
         title: 'Settings saved',
         description: 'General settings have been updated successfully.',
       });
+      
+      // Clear uploaded logo state after successful save
+      if (uploadedLogo) {
+        setUploadedLogo(null);
+      }
       
       // Invalidate queries to refresh data
       queryClient.invalidateQueries({ queryKey: ['/api/site-config'] });
@@ -457,6 +519,68 @@ export default function SiteConfigManagement() {
                   onChange={(e) => setSiteTitle(e.target.value)}
                   placeholder="Site Title"
                 />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="institute-name">Institute Name</Label>
+                <Input 
+                  id="institute-name" 
+                  value={instituteName}
+                  onChange={(e) => setInstituteName(e.target.value)}
+                  placeholder="Institute Name"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="tagline">Tagline</Label>
+                <Input 
+                  id="tagline" 
+                  value={tagline}
+                  onChange={(e) => setTagline(e.target.value)}
+                  placeholder="Your catchy tagline"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="logo-url">Logo URL</Label>
+                <Input 
+                  id="logo-url" 
+                  value={logoUrl}
+                  onChange={(e) => setLogoUrl(e.target.value)}
+                  placeholder="URL for your logo image"
+                />
+                {logoUrl && (
+                  <div className="mt-2 rounded-md overflow-hidden w-full max-w-md h-20">
+                    <img src={logoUrl} alt="Logo preview" className="h-full w-auto object-contain" />
+                  </div>
+                )}
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="logo-upload">Or Upload Logo</Label>
+                <Input 
+                  id="logo-upload" 
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      setUploadedLogo(file);
+                      const reader = new FileReader();
+                      reader.onload = (event) => {
+                        if (event.target?.result) {
+                          setUploadedLogoPreview(event.target.result as string);
+                        }
+                      };
+                      reader.readAsDataURL(file);
+                    }
+                  }}
+                />
+                {uploadedLogoPreview && (
+                  <div className="mt-2 rounded-md overflow-hidden w-full max-w-md h-20">
+                    <img src={uploadedLogoPreview} alt="Uploaded logo preview" className="h-full w-auto object-contain" />
+                  </div>
+                )}
               </div>
             </CardContent>
             <CardFooter>
