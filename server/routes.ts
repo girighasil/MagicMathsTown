@@ -317,6 +317,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Link test to test series
+  app.post("/api/admin/test-series/:testSeriesId/link-test", isAdmin, async (req: Request, res: Response) => {
+    try {
+      const testSeriesId = parseInt(req.params.testSeriesId);
+      const { testId } = req.body;
+      
+      if (!testId) {
+        return res.status(400).json({ message: "Test ID is required" });
+      }
+      
+      // Get the test to update
+      const test = await storage.getTest(parseInt(testId));
+      if (!test) {
+        return res.status(404).json({ message: "Test not found" });
+      }
+      
+      // Update the test's testSeriesId
+      const updatedTest = await storage.updateTest(parseInt(testId), { 
+        testSeriesId: testSeriesId 
+      });
+      
+      res.json({ 
+        message: "Test linked to test series successfully", 
+        test: updatedTest 
+      });
+    } catch (error) {
+      console.error("Error linking test to test series:", error);
+      res.status(500).json({ message: "Failed to link test to test series", error });
+    }
+  });
+  
   app.delete("/api/admin/tests/:id", isAdmin, async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
