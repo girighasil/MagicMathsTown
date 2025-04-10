@@ -82,6 +82,8 @@ function TestDetails() {
       const payload = {
         ...data,
         testSeriesId: parseInt(id),
+        // Convert negativeMarking to string as expected by the schema
+        negativeMarking: data.negativeMarking.toString(),
       };
       return await apiRequest("POST", "/api/admin/tests", payload);
     },
@@ -105,7 +107,12 @@ function TestDetails() {
 
   const updateTestMutation = useMutation({
     mutationFn: async (data: TestFormValues) => {
-      return await apiRequest("PUT", `/api/admin/tests/${selectedTest.id}`, data);
+      const payload = {
+        ...data,
+        // Convert negativeMarking to string as expected by the schema
+        negativeMarking: data.negativeMarking.toString(),
+      };
+      return await apiRequest("PUT", `/api/admin/tests/${selectedTest.id}`, payload);
     },
     onSuccess: () => {
       toast({
