@@ -1040,6 +1040,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get all test attempts for the current user
+  app.get("/api/users/test-attempts", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const userId = req.user!.id;
+      
+      // Get all test attempts for this user
+      const testAttempts = await storage.getTestAttemptsByUser(userId);
+      
+      // For each test attempt, get the test details
+      const fullTestAttempts = await Promise.all(testAttempts.map(async (attempt) => {
+        const test = await storage.getTest(attempt.testId);
+        return {
+          ...attempt,
+          test
+        };
+      }));
+      
+      res.json(fullTestAttempts);
+    } catch (error) {
+      console.error("Error getting user test attempts:", error);
+      res.status(500).json({ message: "Failed to get test attempts", error });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

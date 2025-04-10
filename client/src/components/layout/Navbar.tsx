@@ -1,11 +1,21 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'wouter';
+import { Link, useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import MobileMenu from './MobileMenu';
 import PromoBanner from './PromoBanner';
-import { SquareRadical } from 'lucide-react';
+import { SquareRadical, BarChart4, LogOut } from 'lucide-react';
 import { useSiteConfig } from '@/hooks/use-site-config';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useAuth } from '@/hooks/use-auth';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -24,6 +34,9 @@ export default function Navbar() {
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
+  
+  const { user, logoutMutation } = useAuth();
+  const [, navigate] = useLocation();
 
   // Define types for navigation links
   type NavLink = {
@@ -101,12 +114,57 @@ export default function Navbar() {
             ))}
           </ul>
           <div className="mt-4 md:mt-0 md:ml-8 flex flex-col md:flex-row md:items-center space-y-2 md:space-y-0 md:space-x-3">
-            <Button variant="outline" className="border-primary text-primary hover:bg-primary hover:text-white">
-              Login
-            </Button>
-            <Button className="bg-primary text-white hover:bg-primary/90">
-              Register
-            </Button>
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative">
+                    <div className="flex items-center gap-2">
+                      <Avatar className="h-8 w-8 border border-primary/30">
+                        <AvatarFallback className="text-xs">
+                          {user.username.charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span className="hidden md:inline-block font-medium">{user.fullName || user.username}</span>
+                    </div>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="end">
+                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => navigate('/dashboard')} className="cursor-pointer">
+                    <BarChart4 className="mr-2 h-4 w-4" />
+                    Dashboard
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem 
+                    onClick={() => {
+                      logoutMutation.mutate();
+                      navigate('/');
+                    }}
+                    className="cursor-pointer text-red-600"
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <>
+                <Button 
+                  variant="outline" 
+                  className="border-primary text-primary hover:bg-primary hover:text-white"
+                  onClick={() => navigate('/auth')}
+                >
+                  Login
+                </Button>
+                <Button 
+                  className="bg-primary text-white hover:bg-primary/90"
+                  onClick={() => navigate('/auth')}
+                >
+                  Register
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </nav>
