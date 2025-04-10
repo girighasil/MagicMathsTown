@@ -49,6 +49,13 @@ export default function TestSeriesDetails() {
   });
 
   // Set page title based on test series name
+  // Set the active tab to "tests" by default if tests are available
+  useEffect(() => {
+    if (tests && tests.length > 0) {
+      setActiveTab('tests');
+    }
+  }, [tests]);
+
   useEffect(() => {
     if (testSeries) {
       document.title = `${testSeries.title} - Maths Magic Town`;
@@ -124,31 +131,52 @@ export default function TestSeriesDetails() {
               <span>₹{testSeries.price.toLocaleString()}</span>
             </div>
           </div>
+          
+          {/* Call-to-action for tests */}
+          {tests && tests.length > 0 && activeTab !== 'tests' && (
+            <div 
+              className="bg-primary/10 border border-primary/20 rounded-md p-4 mt-2 flex items-center cursor-pointer"
+              onClick={() => setActiveTab('tests')}
+            >
+              <div className="bg-primary rounded-full h-8 w-8 flex items-center justify-center text-white mr-3">
+                <BookOpen className="h-4 w-4" />
+              </div>
+              <div>
+                <h3 className="font-medium text-primary">Ready to start practicing?</h3>
+                <p className="text-sm text-gray-700">Click here or select the <span className="font-semibold">Tests</span> tab above to view and attempt all available tests in this series.</p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
       {/* Tabs */}
       <div className="border-b mb-8">
-        <div className="flex space-x-6">
+        <div className="flex space-x-3">
           <button
-            className={`pb-2 px-1 ${
+            className={`pb-2 px-4 py-3 rounded-t-lg transition-all ${
               activeTab === 'about'
-                ? 'border-b-2 border-primary text-primary font-medium'
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'bg-primary/10 border-b-2 border-primary text-primary font-medium'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
             }`}
             onClick={() => setActiveTab('about')}
           >
-            About
+            About Series
           </button>
           <button
-            className={`pb-2 px-1 ${
+            className={`pb-2 px-4 py-3 rounded-t-lg transition-all flex items-center ${
               activeTab === 'tests'
-                ? 'border-b-2 border-primary text-primary font-medium'
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'bg-primary/10 border-b-2 border-primary text-primary font-medium'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
             }`}
             onClick={() => setActiveTab('tests')}
           >
-            Tests
+            <span className="mr-1">Available Tests</span>
+            {tests && tests.length > 0 && (
+              <span className="bg-primary text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                {tests.length}
+              </span>
+            )}
           </button>
         </div>
       </div>
@@ -170,39 +198,53 @@ export default function TestSeriesDetails() {
 
       {activeTab === 'tests' && (
         <div>
-          <h2 className="text-xl font-semibold mb-6">Available Tests</h2>
+          <div className="bg-primary/5 rounded-lg p-6 mb-8 border border-primary/10">
+            <h2 className="text-xl font-semibold mb-2 flex items-center">
+              <Award className="h-5 w-5 mr-2 text-primary" />
+              Available Tests
+            </h2>
+            <p className="text-gray-600 mb-4">
+              Click on "Start Test" below to begin your practice session. Each test has a timer and will automatically submit when the time is up.
+            </p>
+          </div>
           
           {tests && tests.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {tests.map((test) => (
-                <Card key={test.id} className="border shadow-sm hover:shadow-md transition-shadow">
-                  <CardHeader>
-                    <CardTitle>{test.title}</CardTitle>
+                <Card key={test.id} className="border border-primary/5 shadow-sm hover:shadow-md transition-all hover:border-primary/20 hover:scale-[1.01] duration-200">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-xl text-primary">{test.title}</CardTitle>
                     <CardDescription>{test.description}</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="grid grid-cols-2 gap-4 mb-4">
-                      <div className="flex items-center text-sm">
-                        <Clock className="h-4 w-4 mr-2 text-gray-500" />
-                        <span>{test.duration} minutes</span>
+                      <div className="flex items-center text-sm p-2 bg-secondary/20 rounded-md">
+                        <Clock className="h-4 w-4 mr-2 text-primary" />
+                        <span><span className="font-medium">{test.duration}</span> minutes</span>
                       </div>
-                      <div className="flex items-center text-sm">
-                        <Award className="h-4 w-4 mr-2 text-gray-500" />
-                        <span>{test.totalMarks} marks</span>
+                      <div className="flex items-center text-sm p-2 bg-secondary/20 rounded-md">
+                        <Award className="h-4 w-4 mr-2 text-primary" />
+                        <span><span className="font-medium">{test.totalMarks}</span> marks</span>
                       </div>
                     </div>
-                    <div className="text-sm text-gray-600">
-                      <p>Passing: {test.passingMarks} marks</p>
-                      <p>Negative Marking: {test.negativeMarking}</p>
+                    <div className="text-sm text-gray-600 bg-secondary/10 p-3 rounded-md">
+                      <div className="flex justify-between mb-1">
+                        <span>Passing Score:</span>
+                        <span className="font-medium">{test.passingMarks} marks</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Negative Marking:</span>
+                        <span className="font-medium">{test.negativeMarking}</span>
+                      </div>
                     </div>
                   </CardContent>
                   <CardFooter>
                     <Button 
-                      className="w-full" 
+                      className="w-full bg-primary hover:bg-primary/90" 
                       onClick={() => handleStartTest(test.id)}
                       disabled={!test.isActive}
                     >
-                      Start Test
+                      {test.isActive ? 'Start Test' : 'Test Inactive'}
                     </Button>
                   </CardFooter>
                 </Card>
