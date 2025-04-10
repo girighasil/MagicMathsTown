@@ -192,6 +192,13 @@ export default function StudentDashboard() {
     return null;
   }
   
+  // Handle logout
+  const { logoutMutation } = useAuth();
+  
+  const handleLogout = () => {
+    logoutMutation.mutate();
+  };
+
   return (
     <div className="container mx-auto py-8 px-4">
       <div className="mb-8 flex flex-col md:flex-row justify-between gap-4 items-start md:items-center">
@@ -206,10 +213,34 @@ export default function StudentDashboard() {
             <p className="text-muted-foreground">Track your progress and performance</p>
           </div>
         </div>
-        <Button onClick={() => navigate('/test-series')}>
-          <BookOpen className="mr-2 h-4 w-4" />
-          Browse All Test Series
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <EditProfileModal />
+          
+          <Button variant="outline" size="sm" className="gap-2" onClick={() => navigate('/')}>
+            <Home className="h-4 w-4" />
+            Homepage
+          </Button>
+          
+          <Button variant="outline" size="sm" className="gap-2" onClick={() => navigate('/test-series')}>
+            <BookOpen className="h-4 w-4" />
+            Test Series
+          </Button>
+          
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="gap-2 text-red-500 hover:text-red-700 hover:bg-red-50"
+            onClick={handleLogout}
+            disabled={logoutMutation.isPending}
+          >
+            {logoutMutation.isPending ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <LogOut className="h-4 w-4" />
+            )}
+            Logout
+          </Button>
+        </div>
       </div>
       
       {/* Stats Overview */}
