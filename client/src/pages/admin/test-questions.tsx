@@ -50,6 +50,7 @@ function TestQuestions() {
   const [activeTab, setActiveTab] = useState("questions");
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [fileUrl, setFileUrl] = useState("");
+  const [questionType, setQuestionType] = useState("mcq");
 
   const { data: test, isLoading: isLoadingTest } = useQuery({
     queryKey: ['/api/tests', parseInt(id)],
@@ -513,6 +514,8 @@ function TestQuestions() {
                           </FormControl>
                           <SelectContent>
                             <SelectItem value="mcq">Multiple Choice (MCQ)</SelectItem>
+                            <SelectItem value="fill-blank">Fill in the Blanks</SelectItem>
+                            <SelectItem value="subjective">Subjective Answer</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
