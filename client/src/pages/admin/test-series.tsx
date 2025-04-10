@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Card, CardContent } from "@/components/ui/card";
 import { Loader2, Plus, Edit, Trash2, ExternalLink } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useFieldArray } from "react-hook-form";
@@ -192,8 +193,13 @@ function TestSeriesManagement() {
       key: "title",
       title: "Title",
       render: (row: any) => (
-        <div className="max-w-sm truncate" title={row.title}>
-          {row.title}
+        <div className="flex items-center gap-2">
+          <div className="max-w-sm truncate font-medium" title={row.title}>
+            {row.title}
+          </div>
+          {row.isPublished && (
+            <Badge className="bg-green-600">Published</Badge>
+          )}
         </div>
       ),
     },
