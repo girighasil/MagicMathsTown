@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { useEffect } from "react";
 import { useLocation } from "wouter";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/use-auth";
 import { LogOut, BarChart4 } from "lucide-react";
 
@@ -13,7 +13,18 @@ interface MobileMenuProps {
 
 export default function MobileMenu({ isOpen, onClose, links }: MobileMenuProps) {
   const [, navigate] = useLocation();
-  const { user, logoutMutation } = useAuth();
+  
+  // Safely access auth context - it will be null at the top level where AuthProvider hasn't wrapped yet
+  let user = null;
+  let logoutMutation: any = null;
+  try {
+    const auth = useAuth();
+    user = auth.user;
+    logoutMutation = auth.logoutMutation;
+  } catch (error) {
+    // Auth context not available, handle gracefully
+    console.log("Auth context not available in MobileMenu");
+  }
   
   // Close menu on screen resize
   useEffect(() => {
@@ -50,7 +61,9 @@ export default function MobileMenu({ isOpen, onClose, links }: MobileMenuProps) 
   };
   
   const handleLogout = () => {
-    logoutMutation.mutate();
+    if (logoutMutation) {
+      logoutMutation.mutate();
+    }
     onClose();
     navigate('/');
   };
