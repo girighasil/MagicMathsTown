@@ -13,19 +13,61 @@ import { Separator } from "@/components/ui/separator";
 import { Clock, ArrowRight, ArrowLeft, Save, CheckCircle, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
+// Define types for our data
+interface Test {
+  id: number;
+  title: string;
+  description: string;
+  duration: number;
+  totalMarks: number;
+  passingMarks: number;
+  negativeMarking: number;
+  instructions?: string;
+  testSeriesId: number;
+  published: boolean;
+}
+
+interface Question {
+  id: number;
+  testId: number;
+  questionText: string;
+  questionType: 'mcq' | 'fill-blank' | 'subjective';
+  marks: number;
+  imageUrl?: string;
+}
+
+interface Option {
+  id: number;
+  questionId: number;
+  optionText: string;
+  isCorrect: boolean;
+}
+
+interface Explanation {
+  id: number;
+  questionId: number;
+  explanationText: string;
+  imageUrl?: string;
+}
+
+interface QuestionDetails extends Question {
+  options?: Option[];
+  explanation?: Explanation;
+}
+
 export default function TestSession() {
   const { id } = useParams();
   const [, navigate] = useLocation();
   const { toast } = useToast();
   
   // Fetch test details
-  const { data: test, isLoading: testLoading } = useQuery({
+  const { data: test, isLoading: testLoading } = useQuery<Test>({
     queryKey: [`/api/tests/${id}`],
     enabled: !!id,
   });
   
-  // Fetch questions
-  const { data: questions, isLoading: questionsLoading } = useQuery({
+  // Fetch questions list
+  const { data: questions, isLoading: questionsLoading } = useQuery<Question[]>({
     queryKey: [`/api/tests/${id}/questions`],
     enabled: !!id,
   });
@@ -34,6 +76,17 @@ export default function TestSession() {
   const [answers, setAnswers] = useState<Record<number, any>>({});
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
   const [testCompleted, setTestCompleted] = useState(false);
+  
+  // Get the current question ID
+  const currentQuestionId = questions && questions.length > 0 && currentQuestionIndex < questions.length 
+    ? questions[currentQuestionIndex].id 
+    : null;
+  
+  // Fetch detailed question data with options
+  const { data: currentQuestionDetails, isLoading: detailsLoading } = useQuery<QuestionDetails>({
+    queryKey: [`/api/questions/${currentQuestionId}`],
+    enabled: !!currentQuestionId,
+  });
   
   // Initialize timer when test data loads
   useEffect(() => {
@@ -107,7 +160,7 @@ export default function TestSession() {
     return Math.round((answeredCount / questions.length) * 100);
   };
   
-  if (testLoading || questionsLoading) {
+  if (testLoading || questionsLoading || (currentQuestionId && detailsLoading)) {
     return (
       <div className="flex justify-center items-center min-h-screen bg-gray-50">
         <div className="animate-spin h-12 w-12 border-4 border-primary rounded-full border-t-transparent"></div>
@@ -216,14 +269,21 @@ export default function TestSession() {
                     onValueChange={(value) => handleAnswerChange(currentQuestion.id, value)}
                     className="space-y-3"
                   >
-                    {currentQuestion.options && currentQuestion.options.map((option: any) => (
-                      <div key={option.id} className="flex items-start space-x-2 rounded-md border border-muted p-3">
-                        <RadioGroupItem value={option.id.toString()} id={`option-${option.id}`} />
-                        <Label htmlFor={`option-${option.id}`} className="flex-grow cursor-pointer">
-                          {option.optionText}
-                        </Label>
+                    {/* Use the detailed question data with options when available */}
+                    {currentQuestionDetails && currentQuestionDetails.options && currentQuestionDetails.options.length > 0 ? (
+                      currentQuestionDetails.options.map((option: Option) => (
+                        <div key={option.id} className="flex items-start space-x-2 rounded-md border border-muted p-3">
+                          <RadioGroupItem value={option.id.toString()} id={`option-${option.id}`} />
+                          <Label htmlFor={`option-${option.id}`} className="flex-grow cursor-pointer">
+                            {option.optionText}
+                          </Label>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="p-4 text-center text-muted-foreground">
+                        Loading options...
                       </div>
-                    ))}
+                    )}
                   </RadioGroup>
                 )}
                 
@@ -289,7 +349,7 @@ export default function TestSession() {
                   <Separator />
                   
                   <div className="grid grid-cols-5 gap-2">
-                    {questions.map((question: any, index: number) => (
+                    {questions.map((question: Question, index: number) => (
                       <Button 
                         key={question.id}
                         variant={index === currentQuestionIndex ? "default" : answers[question.id] ? "outline" : "ghost"}
