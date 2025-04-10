@@ -481,6 +481,14 @@ function TestQuestions() {
           <Button
             variant="outline"
             size="icon"
+            onClick={() => openEditModal(row)}
+            title="Edit Question"
+          >
+            <Edit className="w-4 h-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
             onClick={() => openDeleteModal(row)}
             title="Delete Question"
           >
@@ -656,11 +664,11 @@ function TestQuestions() {
           </TabsContent>
         </Tabs>
 
-        {/* Add Question Modal */}
+        {/* Add/Edit Question Modal */}
         <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
           <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Add New Question</DialogTitle>
+              <DialogTitle>{selectedQuestion ? 'Edit Question' : 'Add New Question'}</DialogTitle>
             </DialogHeader>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -923,13 +931,13 @@ function TestQuestions() {
                   </Button>
                   <Button 
                     type="submit" 
-                    disabled={createQuestionMutation.isPending}
+                    disabled={createQuestionMutation.isPending || updateQuestionMutation.isPending}
                     className="w-full sm:w-auto"
                   >
-                    {createQuestionMutation.isPending && (
+                    {(createQuestionMutation.isPending || updateQuestionMutation.isPending) && (
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     )}
-                    Create Question
+                    {selectedQuestion ? 'Update Question' : 'Create Question'}
                   </Button>
                 </DialogFooter>
               </form>
