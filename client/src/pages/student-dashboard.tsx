@@ -42,7 +42,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { EditProfileForm } from '@/components/EditProfileForm';
+import { EditProfileForm } from '../components/EditProfileForm';
 
 // Types for the TestAttempt
 interface TestAttempt {
@@ -250,12 +250,10 @@ export default function StudentDashboard() {
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuGroup>
-                <DialogTrigger asChild>
-                  <DropdownMenuItem>
-                    <User className="mr-2 h-4 w-4" />
-                    <span>Edit Profile</span>
-                  </DropdownMenuItem>
-                </DialogTrigger>
+                <DropdownMenuItem onClick={() => document.getElementById('edit-profile-dialog-trigger')?.click()}>
+                  <User className="mr-2 h-4 w-4" />
+                  <span>Edit Profile</span>
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => navigate('/')}>
                   <Home className="mr-2 h-4 w-4" />
                   <span>Homepage</span>
@@ -280,6 +278,7 @@ export default function StudentDashboard() {
       </div>
       
       <Dialog>
+        <DialogTrigger id="edit-profile-dialog-trigger" className="hidden" />
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Edit Profile</DialogTitle>
