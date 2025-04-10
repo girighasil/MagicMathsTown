@@ -28,8 +28,9 @@ const formatTime = (seconds: number): string => {
 interface QuestionOption {
   id: number;
   questionId: number;
-  text: string;
+  optionText: string;
   isCorrect: boolean;
+  createdAt: string;
 }
 
 interface Question {
@@ -376,7 +377,7 @@ export default function TestTakingSession() {
                     currentQuestion.options.map((option: QuestionOption) => (
                       <div key={option.id} className="flex items-center space-x-2 mb-3 p-2 rounded hover:bg-secondary/20">
                         <RadioGroupItem value={option.id.toString()} id={`option-${option.id}`} />
-                        <Label htmlFor={`option-${option.id}`} className="flex-1 cursor-pointer">{option.text}</Label>
+                        <Label htmlFor={`option-${option.id}`} className="flex-1 cursor-pointer">{option.optionText}</Label>
                       </div>
                     ))
                   ) : (
