@@ -134,7 +134,7 @@ const RecentTestCard = ({ attempt }: { attempt: TestAttempt }) => {
 };
 
 export default function StudentDashboard() {
-  const { user, isLoading: isAuthLoading } = useAuth();
+  const { user, isLoading: isAuthLoading, logoutMutation } = useAuth();
   const [, navigate] = useLocation();
   
   // Fetch all test attempts for this user
@@ -174,6 +174,11 @@ export default function StudentDashboard() {
     { name: "Geometry", progress: 58 },
   ];
   
+  // Handle logout
+  const handleLogout = () => {
+    logoutMutation.mutate();
+  };
+  
   // Loading state
   if (isAuthLoading || isAttemptsLoading) {
     return (
@@ -190,13 +195,6 @@ export default function StudentDashboard() {
   if (!user) {
     navigate('/auth');
     return null;
-  }
-  
-  // Handle logout
-  const { logoutMutation } = useAuth();
-  
-  const handleLogout = () => {
-    logoutMutation.mutate();
   };
 
   return (
