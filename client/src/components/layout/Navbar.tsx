@@ -51,13 +51,28 @@ export default function Navbar() {
       <nav className="container mx-auto px-4 py-4 flex flex-wrap items-center justify-between">
         <div className="flex items-center">
           <Link href="/" className="flex items-center">
-            <div className="bg-primary rounded-lg p-2 mr-2">
-              <SquareRadical className="h-6 w-6 text-white" />
-            </div>
             {isLoading ? (
-              <Skeleton className="h-6 w-40 bg-gray-200" />
+              <Skeleton className="h-10 w-40 bg-gray-200" />
             ) : (
-              <span className="font-bold text-xl text-primary">{siteTitle}</span>
+              <>
+                {useCustomLogo && logoUrl ? (
+                  <div className="h-10 mr-3">
+                    <img 
+                      src={logoUrl} 
+                      alt={instituteName} 
+                      className="h-full w-auto object-contain" 
+                    />
+                  </div>
+                ) : (
+                  <div className="bg-primary rounded-lg p-2 mr-3">
+                    <SquareRadical className="h-6 w-6 text-white" />
+                  </div>
+                )}
+                <div className="flex flex-col">
+                  <span className="font-bold text-xl text-primary">{instituteName}</span>
+                  <span className="text-xs text-gray-600">{tagline}</span>
+                </div>
+              </>
             )}
           </Link>
         </div>

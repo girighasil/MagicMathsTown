@@ -508,7 +508,8 @@ export default function SiteConfigManagement() {
         secondaryColor,
         fontMain,
         fontHeadings,
-        logoUrl
+        logoUrl,
+        useCustomLogo
       };
       
       await apiRequest('PUT', `/api/admin/site-config/theme`, {
@@ -617,6 +618,7 @@ export default function SiteConfigManagement() {
                   id="logo-upload" 
                   type="file"
                   accept="image/*"
+                  disabled={!useCustomLogo}
                   onChange={async (e) => {
                     const file = e.target.files?.[0];
                     if (file) {
