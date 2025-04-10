@@ -64,7 +64,7 @@ export default function DoubtClassSection() {
           >
             <div className="bg-white rounded-lg shadow-xl overflow-hidden">
               <div className="bg-primary p-4 text-white">
-                <h3 className="font-semibold text-xl">Book a Doubt Clearing Session</h3>
+                <h3 className="font-semibold text-xl">Try Free Demo</h3>
               </div>
               <DoubtForm />
             </div>
