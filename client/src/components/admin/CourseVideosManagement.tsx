@@ -30,9 +30,11 @@ const courseVideoFormSchema = insertCourseVideoSchema
 
 type CourseVideoFormValues = z.infer<typeof courseVideoFormSchema>;
 
-export default function CourseVideosManagement() {
-  const { id } = useParams<{ id: string }>();
-  const courseId = parseInt(id);
+interface CourseVideosManagementProps {
+  courseId: number;
+}
+
+export default function CourseVideosManagement({ courseId }: CourseVideosManagementProps) {
   const queryClient = useQueryClient();
   const [isAddVideoDialogOpen, setIsAddVideoDialogOpen] = useState(false);
   const [isEditVideoDialogOpen, setIsEditVideoDialogOpen] = useState(false);
@@ -326,6 +328,11 @@ export default function CourseVideosManagement() {
     if (bytes < 1024) return bytes + ' bytes';
     else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
     else return (bytes / 1048576).toFixed(1) + ' MB';
+  };
+  
+  // Helper function to safely handle null/undefined values for form inputs
+  const safeValue = (value: string | null | undefined): string => {
+    return value || '';
   };
 
   // Get YouTube video ID from URL

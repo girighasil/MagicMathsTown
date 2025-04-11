@@ -76,7 +76,7 @@ export default function AdminCourseDetail() {
                 <CardDescription>Manage videos for this course</CardDescription>
               </CardHeader>
               <CardContent>
-                <CourseVideosManagement />
+                <CourseVideosManagement courseId={courseId} />
               </CardContent>
             </Card>
           </TabsContent>
