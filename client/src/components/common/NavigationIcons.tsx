@@ -27,19 +27,19 @@ export function NavigationIcons({
   };
 
   return (
-    <div className={`flex gap-2 ${className}`}>
+    <div className={`flex gap-3 ${className}`}>
       <TooltipProvider>
         {!isHomePage && (
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
                 onClick={handleGoBack}
-                size="icon"
-                variant="ghost"
-                className="h-9 w-9 rounded-full"
+                size="sm"
+                variant="secondary"
+                className="shadow-sm border bg-secondary/30 hover:bg-secondary/50 flex items-center gap-1 pl-2 pr-3 py-2"
               >
-                <ArrowLeft className="h-5 w-5" />
-                <span className="sr-only">{previousLabel}</span>
+                <ArrowLeft className="h-4 w-4" />
+                <span className="text-xs font-medium">{previousLabel}</span>
               </Button>
             </TooltipTrigger>
             <TooltipContent>
@@ -53,12 +53,12 @@ export function NavigationIcons({
             <TooltipTrigger asChild>
               <Button
                 onClick={() => navigate("/")}
-                size="icon"
-                variant="ghost"
-                className="h-9 w-9 rounded-full"
+                size="sm"
+                variant="secondary"
+                className="shadow-sm border bg-secondary/30 hover:bg-secondary/50 flex items-center gap-1 px-3 py-2"
               >
-                <Home className="h-5 w-5" />
-                <span className="sr-only">Home</span>
+                <Home className="h-4 w-4" />
+                <span className="text-xs font-medium">Home</span>
               </Button>
             </TooltipTrigger>
             <TooltipContent>

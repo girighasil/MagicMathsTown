@@ -302,10 +302,11 @@ export default function TestTakingSession() {
   if (!testAttempt || !questions || questions.length === 0) {
     return (
       <div className="container mx-auto py-6 px-4">
-        <div className="flex justify-start mb-4">
+        {/* Keep navigation icons visible on error pages */}
+        <div className="flex justify-start mb-6">
           <NavigationIcons previousPath="/test-series" previousLabel="Back to Test Series" />
         </div>
-        <Card>
+        <Card className="shadow-md">
           <CardHeader>
             <CardTitle>Test Not Found</CardTitle>
           </CardHeader>
@@ -313,7 +314,9 @@ export default function TestTakingSession() {
             <p>The test you're looking for doesn't exist or has no questions.</p>
           </CardContent>
           <CardFooter>
-            <Button onClick={() => navigate('/test-series')}>Back to Test Series</Button>
+            <Button onClick={() => navigate('/test-series')}>
+              <ArrowLeft className="mr-2 h-4 w-4" /> Return to Test Series
+            </Button>
           </CardFooter>
         </Card>
       </div>
@@ -325,12 +328,10 @@ export default function TestTakingSession() {
   const answeredCount = Object.keys(selectedOptions).length;
   const remainingCount = questions.length - answeredCount;
   
+  // Hide navigation icons during the active test to prevent accidental navigation
+  // Will only be shown in the "Not Found" error state
   return (
     <div className="container mx-auto py-2 px-4">
-      {/* Navigation icons */}
-      <div className="mb-2">
-        <NavigationIcons previousPath="/test-series" previousLabel="Exit Test" />
-      </div>
       
       {/* Header with test info and timer */}
       <div className="sticky top-0 bg-background z-10 pb-2 border-b mb-4">
