@@ -330,6 +330,15 @@ export default function StudentDashboard() {
             variant="outline"
             size="sm"
             className="gap-2"
+            onClick={() => navigate("/courses")}
+          >
+            <BrainCircuit className="h-4 w-4" />
+            Courses
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2"
             onClick={() => navigate("/test-series")}
           >
             <BookOpen className="h-4 w-4" />
