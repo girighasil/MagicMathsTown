@@ -406,6 +406,49 @@ export const siteConfig = pgTable("site_config", {
 export type SiteConfig = typeof siteConfig.$inferSelect;
 export type InsertSiteConfig = typeof siteConfig.$inferInsert;
 
+// Course Videos Schema
+export const courseVideos = pgTable("course_videos", {
+  id: serial("id").primaryKey(),
+  courseId: integer("course_id").references(() => courses.id, { onDelete: "cascade" }).notNull(),
+  title: text("title").notNull(),
+  description: text("description"),
+  videoType: text("video_type").notNull(), // 'youtube', 'upload', etc.
+  videoUrl: text("video_url"), // URL for YouTube videos
+  videoFile: text("video_file"), // Path to uploaded video file
+  thumbnail: text("thumbnail"), // Thumbnail image URL
+  duration: text("duration"), // Duration in format "HH:MM:SS" or minutes
+  order: integer("order").default(0).notNull(), // For ordering videos in a course
+  isPublished: boolean("is_published").default(false).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertCourseVideoSchema = createInsertSchema(courseVideos).pick({
+  courseId: true,
+  title: true,
+  description: true,
+  videoType: true,
+  videoUrl: true,
+  videoFile: true,
+  thumbnail: true,
+  duration: true,
+  order: true,
+  isPublished: true,
+});
+
+export type CourseVideo = typeof courseVideos.$inferSelect;
+export type InsertCourseVideo = z.infer<typeof insertCourseVideoSchema>;
+
+export const coursesRelations = relations(courses, ({ many }) => ({
+  videos: many(courseVideos),
+}));
+
+export const courseVideosRelations = relations(courseVideos, ({ one }) => ({
+  course: one(courses, {
+    fields: [courseVideos.courseId],
+    references: [courses.id],
+  }),
+}));
+
 // Define user relations now that testAttempts is defined
 export const usersRelations = relations(users, ({ many }) => ({
   doubtSessions: many(doubtSessions),
