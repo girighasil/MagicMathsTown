@@ -1183,7 +1183,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.status(201).json({
         message: "Video uploaded successfully",
-        filePath
+        videoFile: filePath,
+        originalName: req.file.originalname,
+        size: req.file.size
       });
     } catch (error) {
       console.error("Error uploading video:", error);
@@ -1235,8 +1237,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // If it's a direct upload, delete the file
-      if (video.videoFile && video.videoFile.startsWith('/uploads/')) {
-        const filePath = path.join(process.cwd(), video.videoUrl);
+      if (video.videoFile && typeof video.videoFile === 'string' && video.videoFile.startsWith('/uploads/')) {
+        const filePath = path.join(process.cwd(), video.videoFile);
         if (fs.existsSync(filePath)) {
           fs.unlinkSync(filePath);
         }
