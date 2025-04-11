@@ -28,8 +28,8 @@ export function CourseForm({ course, onSubmit, onCancel, isSubmitting }: CourseF
   const [discountPrice, setDiscountPrice] = useState<number | null | undefined>(undefined);
   const [imageUrl, setImageUrl] = useState('');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [popular, setPopular] = useState(false);
-  const [isLive, setIsLive] = useState(true);
+  const [popular, setPopular] = useState<boolean>(false);
+  const [isLive, setIsLive] = useState<boolean>(true);
   const [showCategoryInput, setShowCategoryInput] = useState(false);
   const [newCategory, setNewCategory] = useState('');
 
@@ -59,8 +59,8 @@ export function CourseForm({ course, onSubmit, onCancel, isSubmitting }: CourseF
         setSelectedCategories([]);
       }
       
-      setPopular(course.popular);
-      setIsLive(course.isLive);
+      setPopular(course.popular === null ? false : course.popular);
+      setIsLive(course.isLive === null ? true : course.isLive);
     }
   }, [course]);
 
