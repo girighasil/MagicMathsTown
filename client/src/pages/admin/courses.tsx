@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { AdminLayout } from '@/components/admin/AdminLayout';
+import { Link } from 'wouter';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Plus, Trash } from 'lucide-react';
+import { FileVideo, Loader2, Plus, Trash } from 'lucide-react';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { EXAM_CATEGORIES } from '@/lib/constants';
 import { useQuery, useMutation } from '@tanstack/react-query';
@@ -189,7 +190,19 @@ export default function CoursesManagement() {
     },
     { key: 'price', title: 'Price', render: (item: Course) => `₹${item.price}` },
     { key: 'popular', title: 'Popular', render: (item: Course) => item.popular ? 'Yes' : 'No' },
-    { key: 'isLive', title: 'Live', render: (item: Course) => item.isLive ? 'Yes' : 'No' }
+    { key: 'isLive', title: 'Live', render: (item: Course) => item.isLive ? 'Yes' : 'No' },
+    { 
+      key: 'actions', 
+      title: 'Actions', 
+      render: (item: Course) => (
+        <Link to={`/admin/courses/${item.id}`}>
+          <Button variant="outline" size="sm">
+            <FileVideo className="h-4 w-4 mr-2" />
+            Manage Videos
+          </Button>
+        </Link>
+      ) 
+    }
   ];
 
   return (
