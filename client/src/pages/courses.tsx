@@ -122,14 +122,18 @@ export default function CoursesPage() {
   
   // Extract unique categories from courses
   const categories = courses
-    ? ["All", ...new Set(courses.flatMap(course => {
-        if (course.categories && course.categories.length > 0) {
-          return course.categories;
-        } else if (course.category) {
-          return [course.category];
-        }
-        return [];
-      }))]
+    ? ["All", ...Array.from(
+        new Set(
+          courses.flatMap(course => {
+            if (course.categories && course.categories.length > 0) {
+              return course.categories;
+            } else if (course.category) {
+              return [course.category];
+            }
+            return [];
+          })
+        )
+      )]
     : ["All"];
   
   // Filter courses by category

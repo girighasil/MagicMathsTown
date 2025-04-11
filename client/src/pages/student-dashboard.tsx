@@ -50,6 +50,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { EditProfileForm } from "../components/EditProfileForm";
+import CourseList from "../components/student/CourseList";
 
 // Types for the TestAttempt
 interface TestAttempt {
@@ -414,6 +415,7 @@ export default function StudentDashboard() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Recent Activity */}
             <div className="lg:col-span-2">
+              {/* Recent Test Activity */}
               <div className="bg-white rounded-lg border p-6 mb-6">
                 <h2 className="text-xl font-semibold mb-4 flex items-center">
                   <TrendingUp className="mr-2 h-5 w-5 text-primary" />
@@ -439,6 +441,16 @@ export default function StudentDashboard() {
                     </Button>
                   </div>
                 )}
+              </div>
+
+              {/* Courses Section */}
+              <div className="bg-white rounded-lg border p-6 mb-6">
+                <h2 className="text-xl font-semibold mb-4 flex items-center">
+                  <BookOpen className="mr-2 h-5 w-5 text-primary" />
+                  Recommended Courses
+                </h2>
+                
+                <CourseList />
               </div>
             </div>
 
