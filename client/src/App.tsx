@@ -27,6 +27,7 @@ function LoadingFallback() {
 
 // Lazy load admin components for better performance
 const CourseManagement = lazy(() => import("@/pages/admin/courses"));
+const CourseDetail = lazy(() => import("@/pages/admin/course-detail"));
 const TestimonialsManagement = lazy(() => import("@/pages/admin/testimonials"));
 const FaqManagement = lazy(() => import("@/pages/admin/faqs"));
 const PromoManagement = lazy(() => import("@/pages/admin/promotions"));
@@ -47,6 +48,7 @@ function Router() {
         <Route path="/test-series" component={TestSeriesPage} />
         <Route path="/test-series/:id" component={TestSeriesDetails} />
         <Route path="/courses" component={CoursesPage} />
+        <Route path="/courses/:id" component={lazy(() => import("@/pages/course-detail"))} />
         <ProtectedRoute path="/test-taking/:testId">
           <TestTakingSession />
         </ProtectedRoute>
@@ -69,6 +71,10 @@ function Router() {
         
         <ProtectedRoute path="/admin/courses" adminOnly>
           <CourseManagement />
+        </ProtectedRoute>
+        
+        <ProtectedRoute path="/admin/courses/:id" adminOnly>
+          <CourseDetail />
         </ProtectedRoute>
         
         <ProtectedRoute path="/admin/testimonials" adminOnly>
