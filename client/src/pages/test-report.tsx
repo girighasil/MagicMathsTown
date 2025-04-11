@@ -163,6 +163,9 @@ export default function TestReport() {
   if (error || !data) {
     return (
       <div className="container mx-auto py-6 px-4">
+        <div className="flex justify-start mb-4">
+          <NavigationIcons previousPath="/test-series" previousLabel="Back to Test Series" />
+        </div>
         <Card>
           <CardHeader>
             <CardTitle>Error</CardTitle>
@@ -171,7 +174,9 @@ export default function TestReport() {
             <p>Failed to load test report. The test attempt may not exist or you don't have permission to view it.</p>
           </CardContent>
           <CardFooter>
-            <Button onClick={() => window.history.back()}>Go Back</Button>
+            <Button onClick={() => navigate("/test-series")}>
+              <ArrowLeft className="mr-2 h-4 w-4" /> Return to Test Series
+            </Button>
           </CardFooter>
         </Card>
       </div>
@@ -188,13 +193,13 @@ export default function TestReport() {
   
   return (
     <div className="container mx-auto py-6 px-4">
-      <Button 
-        variant="outline" 
-        onClick={() => testData?.testSeriesId ? navigate(`/test-series/${testData.testSeriesId}`) : window.history.back()} 
-        className="mb-4"
-      >
-        <ArrowLeft className="mr-2 h-4 w-4" /> Back to Test Series
-      </Button>
+      {/* Navigation Icons */}
+      <div className="flex justify-between items-center mb-4">
+        <NavigationIcons 
+          previousPath={testData?.testSeriesId ? `/test-series/${testData.testSeriesId}` : "/test-series"} 
+          previousLabel="Back to Test Series" 
+        />
+      </div>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         {/* Test Info Card */}
@@ -478,7 +483,9 @@ export default function TestReport() {
           </Tabs>
         </CardContent>
         <CardFooter>
-          <Button onClick={() => testData?.testSeriesId ? navigate(`/test-series/${testData.testSeriesId}`) : window.history.back()}>Back to Test Series</Button>
+          <Button onClick={() => testData?.testSeriesId ? navigate(`/test-series/${testData.testSeriesId}`) : navigate("/test-series")}>
+            <ArrowLeft className="mr-2 h-4 w-4" /> Return to Test Series
+          </Button>
         </CardFooter>
       </Card>
     </div>
