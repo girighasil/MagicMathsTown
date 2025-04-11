@@ -79,7 +79,7 @@ const CourseCard = ({ course }: { course: Course }) => {
           )}
         </div>
         <Button variant="ghost" size="sm" className="text-primary p-0 h-8"
-          onClick={() => navigate(`/courses`)}>
+          onClick={() => navigate(`/courses/${course.id}`)}>
           View <ArrowRight className="h-3 w-3 ml-1" />
         </Button>
       </CardFooter>

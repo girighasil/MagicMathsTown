@@ -103,7 +103,11 @@ const CourseCard = ({ course }: { course: Course }) => {
             <span className="text-xl font-bold">₹{course.price}</span>
           )}
         </div>
-        <Button variant="outline" className="gap-1">
+        <Button 
+          variant="outline" 
+          className="gap-1"
+          onClick={() => navigate(`/courses/${course.id}`)}
+        >
           Details <ArrowRight className="h-4 w-4" />
         </Button>
       </CardFooter>
