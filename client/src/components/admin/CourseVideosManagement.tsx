@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useParams } from 'wouter';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -7,17 +6,16 @@ import { z } from 'zod';
 import { insertCourseVideoSchema, type Course, type CourseVideo } from '@shared/schema';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Loader2, Upload, Youtube, Edit, Trash, Play, AlertTriangle } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { toast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 
 // Validation schema
@@ -35,6 +33,7 @@ interface CourseVideosManagementProps {
 }
 
 export default function CourseVideosManagement({ courseId }: CourseVideosManagementProps) {
+  const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isAddVideoDialogOpen, setIsAddVideoDialogOpen] = useState(false);
   const [isEditVideoDialogOpen, setIsEditVideoDialogOpen] = useState(false);
@@ -81,6 +80,11 @@ export default function CourseVideosManagement({ courseId }: CourseVideosManagem
     },
   });
 
+  // Helper function to ensure safe string values
+  const safeString = (value: string | null | undefined): string => {
+    return value || '';
+  };
+
   // Reset form when dialog closes
   const resetAddVideoForm = () => {
     addVideoForm.reset();
@@ -92,11 +96,11 @@ export default function CourseVideosManagement({ courseId }: CourseVideosManagem
     setVideoToEdit(video);
     editVideoForm.reset({
       title: video.title,
-      description: video.description || '',
+      description: video.description ? video.description : '',
       videoType: video.videoType as 'youtube' | 'upload',
-      videoUrl: video.videoUrl || '',
-      videoFile: video.videoFile || '',
-      duration: video.duration || '',
+      videoUrl: video.videoUrl ? video.videoUrl : '',
+      videoFile: video.videoFile ? video.videoFile : '',
+      duration: video.duration ? video.duration : '',
       order: video.order,
       isPublished: video.isPublished,
     });
@@ -272,9 +276,9 @@ export default function CourseVideosManagement({ courseId }: CourseVideosManagem
     
     // Clear the field that doesn't apply to the selected video type
     if (values.videoType === 'youtube') {
-      values.videoFile = null;
+      values.videoFile = undefined;
     } else {
-      values.videoUrl = null;
+      values.videoUrl = undefined;
     }
     
     createVideoMutation.mutate(values);
@@ -305,9 +309,9 @@ export default function CourseVideosManagement({ courseId }: CourseVideosManagem
     
     // Clear the field that doesn't apply to the selected video type
     if (values.videoType === 'youtube') {
-      values.videoFile = null;
+      values.videoFile = undefined;
     } else {
-      values.videoUrl = null;
+      values.videoUrl = undefined;
     }
     
     updateVideoMutation.mutate({
@@ -328,18 +332,6 @@ export default function CourseVideosManagement({ courseId }: CourseVideosManagem
     if (bytes < 1024) return bytes + ' bytes';
     else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
     else return (bytes / 1048576).toFixed(1) + ' MB';
-  };
-  
-  // Helper function to safely handle null/undefined values for form inputs
-  const safeValue = (value: string | null | undefined): string => {
-    return value || '';
-  };
-
-  // Get YouTube video ID from URL
-  const getYouTubeId = (url: string): string | null => {
-    const regex = /(?:youtube\.com\/(?:[^/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?/ ]{11})/;
-    const match = url.match(regex);
-    return match ? match[1] : null;
   };
 
   return (
@@ -466,7 +458,7 @@ export default function CourseVideosManagement({ courseId }: CourseVideosManagem
                         {...field} 
                         placeholder="Enter video description" 
                         rows={3}
-                        value={field.value || ''}
+                        value={safeString(field.value)}
                       />
                     </FormControl>
                     <FormMessage />
@@ -482,7 +474,11 @@ export default function CourseVideosManagement({ courseId }: CourseVideosManagem
                     <FormItem>
                       <FormLabel>Duration (e.g., "15:30")</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="e.g., 10:25" />
+                        <Input 
+                          {...field} 
+                          placeholder="e.g., 10:25" 
+                          value={safeString(field.value)}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -542,7 +538,11 @@ export default function CourseVideosManagement({ courseId }: CourseVideosManagem
                     <FormItem>
                       <FormLabel>YouTube URL</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="https://www.youtube.com/watch?v=..." />
+                        <Input 
+                          {...field} 
+                          placeholder="https://www.youtube.com/watch?v=..." 
+                          value={safeString(field.value)}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -704,7 +704,12 @@ export default function CourseVideosManagement({ courseId }: CourseVideosManagem
                   <FormItem>
                     <FormLabel>Description</FormLabel>
                     <FormControl>
-                      <Textarea {...field} placeholder="Enter video description" rows={3} />
+                      <Textarea 
+                        {...field} 
+                        placeholder="Enter video description" 
+                        rows={3} 
+                        value={safeString(field.value)}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -719,7 +724,11 @@ export default function CourseVideosManagement({ courseId }: CourseVideosManagem
                     <FormItem>
                       <FormLabel>Duration (e.g., "15:30")</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="e.g., 10:25" />
+                        <Input 
+                          {...field} 
+                          placeholder="e.g., 10:25" 
+                          value={safeString(field.value)}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -779,42 +788,80 @@ export default function CourseVideosManagement({ courseId }: CourseVideosManagem
                     <FormItem>
                       <FormLabel>YouTube URL</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="https://www.youtube.com/watch?v=..." />
+                        <Input 
+                          {...field} 
+                          placeholder="https://www.youtube.com/watch?v=..." 
+                          value={safeString(field.value)}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
               ) : (
-                <FormField
-                  control={editVideoForm.control}
-                  name="videoFile"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Uploaded Video</FormLabel>
-                      <FormControl>
-                        <div className="border rounded-md p-4">
-                          {field.value ? (
-                            <div className="space-y-2">
-                              <div className="flex items-center justify-between">
-                                <span className="font-medium truncate">{field.value}</span>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <Play className="h-4 w-4 text-green-600" />
-                                <span className="text-sm text-green-600">Video is ready</span>
-                              </div>
-                            </div>
-                          ) : (
-                            <div className="text-center p-4 text-muted-foreground">
-                              No video file uploaded
-                            </div>
-                          )}
+                <div className="space-y-4">
+                  <FormItem>
+                    <FormLabel>Video File</FormLabel>
+                    <div className="border rounded-md p-4">
+                      {editVideoForm.watch('videoFile') ? (
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            <Play className="h-4 w-4 text-green-600" />
+                            <span className="text-sm">Video file: {editVideoForm.watch('videoFile')}</span>
+                          </div>
+                          <Button 
+                            type="button" 
+                            variant="outline" 
+                            className="w-full"
+                            onClick={() => {
+                              setUploadedFile(null);
+                              editVideoForm.setValue('videoFile', '');
+                            }}
+                          >
+                            Change video file
+                          </Button>
                         </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                      ) : (
+                        <div className="space-y-4">
+                          <div className="flex flex-col items-center justify-center p-6 border border-dashed rounded-md bg-muted/50">
+                            <Upload className="h-10 w-10 text-muted-foreground mb-2" />
+                            <p className="text-sm text-muted-foreground text-center">
+                              Upload a new video file
+                            </p>
+                          </div>
+                          
+                          <div className="relative">
+                            <Input
+                              type="file"
+                              accept="video/mp4,video/webm,video/ogg,video/quicktime"
+                              className="absolute inset-0 opacity-0"
+                              onChange={handleFileUpload}
+                              disabled={isUploading}
+                            />
+                            <Button 
+                              type="button" 
+                              variant="secondary" 
+                              className="w-full"
+                              disabled={isUploading}
+                            >
+                              {isUploading ? (
+                                <>
+                                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                  Uploading...
+                                </>
+                              ) : (
+                                <>
+                                  <Upload className="h-4 w-4 mr-2" />
+                                  Browse files
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </FormItem>
+                </div>
               )}
               
               <Separator />
@@ -851,14 +898,17 @@ export default function CourseVideosManagement({ courseId }: CourseVideosManagem
                 >
                   Cancel
                 </Button>
-                <Button type="submit" disabled={updateVideoMutation.isPending}>
+                <Button 
+                  type="submit" 
+                  disabled={updateVideoMutation.isPending || isUploading}
+                >
                   {updateVideoMutation.isPending ? (
                     <>
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                       Saving...
                     </>
                   ) : (
-                    'Update Video'
+                    'Save Changes'
                   )}
                 </Button>
               </DialogFooter>
