@@ -33,7 +33,7 @@ export default function CourseDetail() {
   if (courseLoading || !course) {
     return (
       <div className="container mx-auto p-6">
-        <NavigationIcons backTo="/courses" includeHome />
+        <NavigationIcons previousPath="/courses" previousLabel="Back to Courses" />
         <div className="space-y-4">
           <Skeleton className="h-12 w-3/4" />
           <Skeleton className="h-6 w-1/2" />
@@ -45,7 +45,7 @@ export default function CourseDetail() {
 
   return (
     <div className="container mx-auto p-6">
-      <NavigationIcons backTo="/courses" includeHome />
+      <NavigationIcons previousPath="/courses" previousLabel="Back to Courses" />
       
       <div className="mb-6">
         <h1 className="text-3xl font-bold tracking-tight">{course.title}</h1>

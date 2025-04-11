@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
-import CourseForm from '@/components/admin/CourseForm';
+import { CourseForm } from '@/components/admin/CourseForm';
 import CourseVideosManagement from '@/components/admin/CourseVideosManagement';
 import { ArrowLeft, BookOpen, FileVideo, Info } from 'lucide-react';
 import { Link } from 'wouter';

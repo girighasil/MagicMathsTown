@@ -455,7 +455,12 @@ export default function CourseVideosManagement() {
                   <FormItem>
                     <FormLabel>Description</FormLabel>
                     <FormControl>
-                      <Textarea {...field} placeholder="Enter video description" rows={3} />
+                      <Textarea 
+                        {...field} 
+                        placeholder="Enter video description" 
+                        rows={3}
+                        value={field.value || ''}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
