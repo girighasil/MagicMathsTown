@@ -1147,7 +1147,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/courses/:courseId/videos", async (req: Request, res: Response) => {
     try {
       const courseId = parseInt(req.params.courseId);
-      const videos = await storage.getCourseVideosByCourse(courseId);
+      let videos = await storage.getCourseVideosByCourse(courseId);
+      
+      // Filter out unpublished videos for non-admin users
+      if (req.user?.role !== 'admin') {
+        videos = videos.filter(video => video.isPublished);
+      }
+      
       res.json(videos);
     } catch (error) {
       console.error("Error getting course videos:", error);

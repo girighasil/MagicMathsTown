@@ -24,9 +24,12 @@ export default function CourseDetail() {
   });
 
   useEffect(() => {
-    // Set the first video as active when videos are loaded
+    // Set the first published video as active when videos are loaded
     if (videos && videos.length > 0 && !activeVideo) {
-      setActiveVideo(videos[0]);
+      const publishedVideos = videos.filter(video => video.isPublished);
+      if (publishedVideos.length > 0) {
+        setActiveVideo(publishedVideos[0]);
+      }
     }
   }, [videos, activeVideo]);
 
@@ -182,7 +185,9 @@ export default function CourseDetail() {
                 </div>
               ) : videos && videos.length > 0 ? (
                 <div className="space-y-2">
-                  {videos.map((video) => (
+                  {videos
+                    .filter(video => video.isPublished)
+                    .map((video) => (
                     <Card 
                       key={video.id} 
                       className={`cursor-pointer hover:bg-accent transition-colors ${
