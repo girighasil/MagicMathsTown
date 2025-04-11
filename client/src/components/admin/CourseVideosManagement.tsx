@@ -426,7 +426,7 @@ export default function CourseVideosManagement({ courseId }: CourseVideosManagem
 
       {/* Add Video Dialog */}
       <Dialog open={isAddVideoDialogOpen} onOpenChange={setIsAddVideoDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Add Video to Course</DialogTitle>
           </DialogHeader>
@@ -676,7 +676,7 @@ export default function CourseVideosManagement({ courseId }: CourseVideosManagem
 
       {/* Edit Video Dialog */}
       <Dialog open={isEditVideoDialogOpen} onOpenChange={setIsEditVideoDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Video</DialogTitle>
           </DialogHeader>

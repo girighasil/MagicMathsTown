@@ -25,7 +25,7 @@ export function CourseForm({ course, onSubmit, onCancel, isSubmitting }: CourseF
   const [duration, setDuration] = useState('');
   const [modules, setModules] = useState(0);
   const [price, setPrice] = useState(0);
-  const [discountPrice, setDiscountPrice] = useState<number | undefined>(undefined);
+  const [discountPrice, setDiscountPrice] = useState<number | null | undefined>(undefined);
   const [imageUrl, setImageUrl] = useState('');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [popular, setPopular] = useState(false);

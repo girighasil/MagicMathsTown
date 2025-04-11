@@ -5,12 +5,13 @@ export interface Course {
   duration: string;
   modules: number;
   price: number;
-  discountPrice?: number;
+  discountPrice?: number | null;
   imageUrl: string;
   categories: string[];
   category?: string; // For backward compatibility
-  popular: boolean;
-  isLive: boolean;
+  popular: boolean | null;
+  isLive: boolean | null;
+  createdAt?: Date;
 }
 
 export interface TestSeries {
