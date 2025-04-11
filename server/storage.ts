@@ -12,7 +12,8 @@ import {
   options, type Option, type InsertOption,
   explanations, type Explanation, type InsertExplanation,
   testAttempts, type TestAttempt, type InsertTestAttempt,
-  userAnswers, type UserAnswer, type InsertUserAnswer
+  userAnswers, type UserAnswer, type InsertUserAnswer,
+  courseVideos, type CourseVideo, type InsertCourseVideo
 } from "@shared/schema";
 
 export interface IStorage {
@@ -107,6 +108,14 @@ export interface IStorage {
   getUserAnswersByTestAttempt(testAttemptId: number): Promise<UserAnswer[]>;
   getUserAnswerByQuestionAndAttempt(testAttemptId: number, questionId: number): Promise<UserAnswer | undefined>;
   updateUserAnswer(id: number, userAnswerData: Partial<InsertUserAnswer>): Promise<UserAnswer>;
+  
+  // Course Videos
+  getAllCourseVideos(): Promise<CourseVideo[]>;
+  getCourseVideosByCourse(courseId: number): Promise<CourseVideo[]>;
+  getCourseVideo(id: number): Promise<CourseVideo | undefined>;
+  createCourseVideo(courseVideo: InsertCourseVideo): Promise<CourseVideo>;
+  updateCourseVideo(id: number, courseVideo: Partial<InsertCourseVideo>): Promise<CourseVideo>;
+  deleteCourseVideo(id: number): Promise<void>;
   
   // Database Setup
   setupInitialData(): Promise<void>;
