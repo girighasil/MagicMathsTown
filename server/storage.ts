@@ -571,6 +571,42 @@ export class DatabaseStorage implements IStorage {
     return userAnswer;
   }
   
+  // Course Videos
+  async getAllCourseVideos(): Promise<CourseVideo[]> {
+    return await db.select().from(courseVideos).orderBy(asc(courseVideos.order));
+  }
+  
+  async getCourseVideosByCourse(courseId: number): Promise<CourseVideo[]> {
+    return await db
+      .select()
+      .from(courseVideos)
+      .where(eq(courseVideos.courseId, courseId))
+      .orderBy(asc(courseVideos.order));
+  }
+  
+  async getCourseVideo(id: number): Promise<CourseVideo | undefined> {
+    const [video] = await db.select().from(courseVideos).where(eq(courseVideos.id, id));
+    return video;
+  }
+  
+  async createCourseVideo(insertCourseVideo: InsertCourseVideo): Promise<CourseVideo> {
+    const [video] = await db.insert(courseVideos).values(insertCourseVideo).returning();
+    return video;
+  }
+  
+  async updateCourseVideo(id: number, courseVideoData: Partial<InsertCourseVideo>): Promise<CourseVideo> {
+    const [video] = await db
+      .update(courseVideos)
+      .set(courseVideoData)
+      .where(eq(courseVideos.id, id))
+      .returning();
+    return video;
+  }
+  
+  async deleteCourseVideo(id: number): Promise<void> {
+    await db.delete(courseVideos).where(eq(courseVideos.id, id));
+  }
+  
   // Initialize the database with sample data
   async setupInitialData() {
     const courseCount = await db.select({ count: sql`count(*)` }).from(courses);

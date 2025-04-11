@@ -1,4 +1,4 @@
-import type { Express, Request, Response, NextFunction } from "express";
+import express, { type Express, type Request, type Response, type NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage, DatabaseStorage } from "./storage";
 import { 
@@ -15,8 +15,12 @@ import {
   insertExplanationSchema,
   insertTestAttemptSchema,
   insertUserAnswerSchema,
+  insertCourseVideoSchema,
   type UserAnswer
 } from "@shared/schema";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
 import { setupAuth, isAuthenticated, isAdmin, createInitialAdmin } from "./auth";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -1091,6 +1095,169 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to update profile" });
     }
   });
+
+  // Set up storage for file uploads
+  const videoStorage = multer.diskStorage({
+    destination: function(req, file, cb) {
+      const uploadDir = path.join(process.cwd(), 'uploads/videos');
+      // Ensure directory exists
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
+      cb(null, uploadDir);
+    },
+    filename: function(req, file, cb) {
+      // Create unique filename with timestamp
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      const extension = path.extname(file.originalname);
+      cb(null, `video-${uniqueSuffix}${extension}`);
+    }
+  });
+
+  const videoUpload = multer({
+    storage: videoStorage,
+    limits: {
+      fileSize: 100 * 1024 * 1024, // 100MB max file size
+    },
+    fileFilter: function(req, file, cb) {
+      // Accept video files only
+      const filetypes = /mp4|webm|ogg|mov/;
+      const mimetype = filetypes.test(file.mimetype);
+      const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+      
+      if (mimetype && extname) {
+        return cb(null, true);
+      }
+      
+      cb(new Error("Error: Videos Only!"));
+    }
+  });
+
+  // Course Videos Routes
+  app.get("/api/course-videos", async (req: Request, res: Response) => {
+    try {
+      const videos = await storage.getAllCourseVideos();
+      res.json(videos);
+    } catch (error) {
+      console.error("Error getting course videos:", error);
+      res.status(500).json({ message: "Failed to get course videos", error });
+    }
+  });
+
+  app.get("/api/courses/:courseId/videos", async (req: Request, res: Response) => {
+    try {
+      const courseId = parseInt(req.params.courseId);
+      const videos = await storage.getCourseVideosByCourse(courseId);
+      res.json(videos);
+    } catch (error) {
+      console.error("Error getting course videos:", error);
+      res.status(500).json({ message: "Failed to get course videos", error });
+    }
+  });
+
+  app.get("/api/course-videos/:id", async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const video = await storage.getCourseVideo(id);
+      
+      if (!video) {
+        return res.status(404).json({ message: "Course video not found" });
+      }
+      
+      res.json(video);
+    } catch (error) {
+      console.error("Error getting course video:", error);
+      res.status(500).json({ message: "Failed to get course video", error });
+    }
+  });
+
+  // Direct upload of video files
+  app.post("/api/admin/course-videos/upload", isAdmin, videoUpload.single('video'), async (req: Request, res: Response) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No video file uploaded" });
+      }
+      
+      // Store the file path in the response
+      const filePath = `/uploads/videos/${req.file.filename}`;
+      
+      res.status(201).json({
+        message: "Video uploaded successfully",
+        filePath
+      });
+    } catch (error) {
+      console.error("Error uploading video:", error);
+      res.status(500).json({ message: "Failed to upload video", error });
+    }
+  });
+
+  // Create course video (either with file path or YouTube URL)
+  app.post("/api/admin/course-videos", isAdmin, async (req: Request, res: Response) => {
+    try {
+      const validatedData = insertCourseVideoSchema.parse(req.body);
+      const courseVideo = await storage.createCourseVideo(validatedData);
+      
+      res.status(201).json({
+        message: "Course video created successfully",
+        courseVideo
+      });
+    } catch (error) {
+      console.error("Error creating course video:", error);
+      res.status(400).json({ message: "Failed to create course video", error });
+    }
+  });
+
+  // Update course video
+  app.put("/api/admin/course-videos/:id", isAdmin, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const validatedData = insertCourseVideoSchema.partial().parse(req.body);
+      const courseVideo = await storage.updateCourseVideo(id, validatedData);
+      
+      res.json({
+        message: "Course video updated successfully",
+        courseVideo
+      });
+    } catch (error) {
+      console.error("Error updating course video:", error);
+      res.status(400).json({ message: "Failed to update course video", error });
+    }
+  });
+
+  // Delete course video
+  app.delete("/api/admin/course-videos/:id", isAdmin, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const video = await storage.getCourseVideo(id);
+      
+      if (!video) {
+        return res.status(404).json({ message: "Course video not found" });
+      }
+      
+      // If it's a direct upload, delete the file
+      if (video.videoFile && video.videoFile.startsWith('/uploads/')) {
+        const filePath = path.join(process.cwd(), video.videoUrl);
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
+        }
+      }
+      
+      await storage.deleteCourseVideo(id);
+      res.json({ message: "Course video deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting course video:", error);
+      res.status(500).json({ message: "Failed to delete course video", error });
+    }
+  });
+
+  // Serve static files from the uploads directory
+  app.use('/uploads', (req, res, next) => {
+    // Check if user is authenticated for protected content
+    if (req.isAuthenticated()) {
+      return next();
+    }
+    res.status(403).send('Unauthorized');
+  }, express.static(path.join(process.cwd(), 'uploads')));
 
   const httpServer = createServer(app);
   return httpServer;
