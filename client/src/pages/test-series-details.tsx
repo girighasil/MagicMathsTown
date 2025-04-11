@@ -14,6 +14,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Clock, ArrowLeft, Tag, BookOpen, Award, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { NavigationIcons } from "@/components/common/NavigationIcons";
 
 interface Test {
   id: number;
@@ -96,6 +97,9 @@ export default function TestSeriesDetails() {
   if (!testSeries) {
     return (
       <div className="container mx-auto px-4 py-12">
+        <div className="flex justify-center mb-6">
+          <NavigationIcons previousPath="/test-series" previousLabel="Back to Test Series" />
+        </div>
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-800 mb-4">
             Test Series Not Found
@@ -115,11 +119,10 @@ export default function TestSeriesDetails() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      {/* Back button */}
-      <Button variant="ghost" onClick={handleGoBack} className="mb-6">
-        <ArrowLeft className="mr-2 h-4 w-4" />
-        Back to Test Series
-      </Button>
+      {/* Navigation Icons */}
+      <div className="flex justify-between items-center mb-6">
+        <NavigationIcons previousPath="/test-series" previousLabel="Back to Test Series" />
+      </div>
 
       {/* Test Series Header */}
       <div className="flex flex-col lg:flex-row justify-between gap-6 mb-8">
