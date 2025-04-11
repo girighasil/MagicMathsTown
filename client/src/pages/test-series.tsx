@@ -44,6 +44,9 @@ export default function TestSeriesPage() {
   if (!testSeries || testSeries.length === 0) {
     return (
       <div className="container mx-auto py-16 px-4">
+        <div className="flex justify-center mb-6">
+          <NavigationIcons previousPath="/" previousLabel="Back to Home" />
+        </div>
         <div className="text-center max-w-2xl mx-auto">
           <h1 className="text-3xl font-bold mb-4">Test Series</h1>
           <p className="text-gray-600 mb-6">
@@ -59,6 +62,11 @@ export default function TestSeriesPage() {
   
   return (
     <div className="container mx-auto py-8 px-4">
+      {/* Navigation Icons */}
+      <div className="flex justify-between items-center mb-6">
+        <NavigationIcons previousPath="/" previousLabel="Back to Home" />
+      </div>
+
       <div className="max-w-4xl mx-auto text-center mb-12">
         <h1 className="text-3xl font-bold mb-4">Available Test Series</h1>
         <p className="text-gray-600">

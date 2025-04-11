@@ -11,6 +11,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useAuth } from "@/hooks/use-auth";
+import { NavigationIcons } from "@/components/common/NavigationIcons";
 
 const formatTime = (seconds: number): string => {
   const hours = Math.floor(seconds / 3600);
@@ -301,6 +302,9 @@ export default function TestTakingSession() {
   if (!testAttempt || !questions || questions.length === 0) {
     return (
       <div className="container mx-auto py-6 px-4">
+        <div className="flex justify-start mb-4">
+          <NavigationIcons previousPath="/test-series" previousLabel="Back to Test Series" />
+        </div>
         <Card>
           <CardHeader>
             <CardTitle>Test Not Found</CardTitle>
@@ -323,6 +327,11 @@ export default function TestTakingSession() {
   
   return (
     <div className="container mx-auto py-2 px-4">
+      {/* Navigation icons */}
+      <div className="mb-2">
+        <NavigationIcons previousPath="/test-series" previousLabel="Exit Test" />
+      </div>
+      
       {/* Header with test info and timer */}
       <div className="sticky top-0 bg-background z-10 pb-2 border-b mb-4">
         <div className="flex justify-between items-center mb-2">
