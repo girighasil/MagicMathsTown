@@ -6,7 +6,8 @@ import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 import { storage } from "./storage";
 import connectPg from "connect-pg-simple";
-import { pool } from "./db";
+import memoryStore from "memorystore";
+import url from 'url';
 
 declare global {
   namespace Express {
@@ -39,14 +40,31 @@ export async function comparePasswords(supplied: string, stored: string) {
   return timingSafeEqual(hashedBuf, suppliedBuf);
 }
 
-// Initialize a PostgreSQL session store
-const PostgresSessionStore = connectPg(session);
+// Initialize session store based on database type
+let sessionStore: session.Store;
 
-// Create the session store
-const sessionStore = new PostgresSessionStore({
-  pool,
-  createTableIfMissing: true
-});
+if (process.env.DATABASE_URL && !process.env.DATABASE_URL.includes('sqlite')) {
+  // If using PostgreSQL, use pg session store
+  console.log("Using PostgreSQL session store");
+  const PostgresSessionStore = connectPg(session);
+  
+  // Create the PostgreSQL session store
+  sessionStore = new PostgresSessionStore({
+    conObject: {
+      connectionString: process.env.DATABASE_URL,
+    },
+    createTableIfMissing: true
+  });
+} else {
+  // If using SQLite or no DB URL specified, use memory store
+  console.log("Using in-memory session store");
+  const MemoryStore = memoryStore(session);
+  
+  // Create the memory session store
+  sessionStore = new MemoryStore({
+    checkPeriod: 86400000 // prune expired entries every 24h
+  });
+}
 
 export function setupAuth(app: Express) {
   // Session configuration
