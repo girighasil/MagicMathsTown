@@ -32,6 +32,12 @@ if (process.env.DATABASE_URL) {
   
   // Use SQLite database
   const sqlite = new Database(path.join(dataDir, 'maths-magic-town.db'));
+
+  // Manually create schema if tables don't exist
+  const manualSchemaFile = fs.readFileSync(path.join(process.cwd(), 'server/manual_schema.ts'), 'utf-8');
+  const schemaString = manualSchemaFile.substring(manualSchemaFile.indexOf('`') + 1, manualSchemaFile.lastIndexOf('`'));
+  sqlite.exec(schemaString);
+
   db = drizzleSQLite(sqlite, { schema });
   
   // Set a fake DATABASE_URL environment variable for compatibility 

@@ -611,7 +611,7 @@ export class DatabaseStorage implements IStorage {
   async setupInitialData() {
     const courseCount = await db.select({ count: sql`count(*)` }).from(courses);
     
-    if (courseCount[0].count === '0') {
+    if (Number(courseCount[0].count) === 0) {
       // Create courses
       const courseData: InsertCourse[] = [
         {
